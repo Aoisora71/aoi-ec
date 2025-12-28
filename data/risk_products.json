@@ -1,0 +1,18 @@
+{
+  "high_risk": {
+    "keywords": [
+      "123"
+    ],
+    "category_ids": [
+      "124124"
+    ]
+  },
+  "low_risk": {
+    "keywords": [
+      "3254123"
+    ],
+    "category_ids": [
+      "1234"
+    ]
+  }
+}

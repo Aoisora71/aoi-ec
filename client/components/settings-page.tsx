@@ -30,7 +30,8 @@ import {
   Pencil,
   Loader2,
   Upload,
-  Shield
+  Shield,
+  Languages
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { apiService, SettingsData as ApiSettingsData, LogEntry, CategoryRecord, PrimaryCategoryRecord } from "@/lib/api-service"
@@ -86,6 +87,950 @@ interface SettingsData {
 }
 
 const PRIMARY_CATEGORY_NONE = "__none__"
+
+// Translation Base Settings Component
+function TranslationBaseSettings() {
+  const [translationConfig, setTranslationConfig] = useState<any>(null)
+  const [isLoading, setIsLoading] = useState(true)
+  const [isSaving, setIsSaving] = useState(false)
+  const [activeSection, setActiveSection] = useState<string>("config")
+  const { toast } = useToast()
+
+  useEffect(() => {
+    loadTranslationSettings()
+  }, [])
+
+  const loadTranslationSettings = async () => {
+    setIsLoading(true)
+    try {
+      const response = await apiService.getTranslationSettings()
+      if (response.success && response.data) {
+        setTranslationConfig(response.data)
+      } else {
+        toast({
+          title: "エラー",
+          description: response.error || "翻訳設定の読み込みに失敗しました",
+          variant: "destructive",
+        })
+      }
+    } catch (error: any) {
+      toast({
+        title: "エラー",
+        description: error.message || "翻訳設定の読み込みに失敗しました",
+        variant: "destructive",
+      })
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleSave = async () => {
+    if (!translationConfig) return
+    
+    setIsSaving(true)
+    try {
+      const response = await apiService.saveTranslationSettings(translationConfig)
+      if (response.success) {
+        toast({
+          title: "成功",
+          description: "翻訳設定を保存しました",
+        })
+        // Reload config
+        await apiService.reloadTranslationConfig()
+      } else {
+        toast({
+          title: "エラー",
+          description: response.error || "翻訳設定の保存に失敗しました",
+          variant: "destructive",
+        })
+      }
+    } catch (error: any) {
+      toast({
+        title: "エラー",
+        description: error.message || "翻訳設定の保存に失敗しました",
+        variant: "destructive",
+      })
+    } finally {
+      setIsSaving(false)
+    }
+  }
+
+  const updateConfig = (path: string[], value: any) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      let current = newConfig
+      for (let i = 0; i < path.length - 1; i++) {
+        if (!current[path[i]]) {
+          current[path[i]] = {}
+        }
+        current = current[path[i]]
+      }
+      current[path[path.length - 1]] = value
+      return newConfig
+    })
+  }
+
+  const updateDictionary = (key: string, source: string, target: string) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (!newConfig.translation_map) newConfig.translation_map = {}
+      if (target === "") {
+        delete newConfig.translation_map[source]
+      } else {
+        newConfig.translation_map[source] = target
+      }
+      return newConfig
+    })
+  }
+
+  const updatePattern = (category: string, patterns: string[]) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (!newConfig.pattern_dictionary) newConfig.pattern_dictionary = {}
+      newConfig.pattern_dictionary[category] = patterns
+      return newConfig
+    })
+  }
+
+  const addPatternCategory = (newCategory: string) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (!newConfig.pattern_dictionary) newConfig.pattern_dictionary = {}
+      if (!newConfig.pattern_dictionary[newCategory]) {
+        newConfig.pattern_dictionary[newCategory] = []
+      }
+      return newConfig
+    })
+  }
+
+  const deletePatternCategory = (category: string) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (newConfig.pattern_dictionary && newConfig.pattern_dictionary[category]) {
+        delete newConfig.pattern_dictionary[category]
+      }
+      return newConfig
+    })
+  }
+
+  const renamePatternCategory = (oldCategory: string, newCategory: string) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (newConfig.pattern_dictionary && newConfig.pattern_dictionary[oldCategory]) {
+        newConfig.pattern_dictionary[newCategory] = newConfig.pattern_dictionary[oldCategory]
+        delete newConfig.pattern_dictionary[oldCategory]
+      }
+      return newConfig
+    })
+  }
+
+  const updateRemovalPattern = (category: string, patterns: string[]) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (!newConfig.removal_patterns) newConfig.removal_patterns = {}
+      newConfig.removal_patterns[category] = patterns
+      return newConfig
+    })
+  }
+
+  const addRemovalPatternCategory = (newCategory: string) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (!newConfig.removal_patterns) newConfig.removal_patterns = {}
+      if (!newConfig.removal_patterns[newCategory]) {
+        newConfig.removal_patterns[newCategory] = []
+      }
+      return newConfig
+    })
+  }
+
+  const deleteRemovalPatternCategory = (category: string) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (newConfig.removal_patterns && newConfig.removal_patterns[category]) {
+        delete newConfig.removal_patterns[category]
+      }
+      return newConfig
+    })
+  }
+
+  const renameRemovalPatternCategory = (oldCategory: string, newCategory: string) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (newConfig.removal_patterns && newConfig.removal_patterns[oldCategory]) {
+        newConfig.removal_patterns[newCategory] = newConfig.removal_patterns[oldCategory]
+        delete newConfig.removal_patterns[oldCategory]
+      }
+      return newConfig
+    })
+  }
+
+  const addAdvancedItem = (itemName: string) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (!newConfig[itemName]) {
+        newConfig[itemName] = []
+      }
+      return newConfig
+    })
+  }
+
+  const deleteAdvancedItem = (itemName: string) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (newConfig[itemName]) {
+        delete newConfig[itemName]
+      }
+      return newConfig
+    })
+  }
+
+  const renameAdvancedItem = (oldName: string, newName: string) => {
+    setTranslationConfig((prev: any) => {
+      const newConfig = JSON.parse(JSON.stringify(prev))
+      if (newConfig[oldName]) {
+        newConfig[newName] = newConfig[oldName]
+        delete newConfig[oldName]
+      }
+      return newConfig
+    })
+  }
+
+  if (isLoading) {
+    return (
+      <Card>
+        <CardContent className="flex items-center justify-center py-8">
+          <Loader2 className="h-6 w-6 animate-spin" />
+        </CardContent>
+      </Card>
+    )
+  }
+
+  if (!translationConfig) {
+    return (
+      <Card>
+        <CardContent className="py-8 text-center">
+          <p className="text-muted-foreground">翻訳設定を読み込めませんでした</p>
+          <Button onClick={loadTranslationSettings} className="mt-4">
+            再読み込み
+          </Button>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>翻訳設定</CardTitle>
+              <CardDescription>
+                翻訳モジュールの設定を管理します。翻訳マップ、パターン辞書、削除パターンを編集できます。
+              </CardDescription>
+            </div>
+            <div className="flex gap-2">
+              <Button
+                variant="outline"
+                onClick={loadTranslationSettings}
+                disabled={isLoading || isSaving}
+                className="gap-2"
+              >
+                <RefreshCw className="h-4 w-4" />
+                リロード
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isLoading || isSaving}
+                className="gap-2"
+              >
+                {isSaving && <Loader2 className="h-4 w-4 animate-spin" />}
+                保存
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <Tabs value={activeSection} onValueChange={setActiveSection} className="w-full">
+            <TabsList className="grid w-full grid-cols-5">
+              <TabsTrigger value="config">基本設定</TabsTrigger>
+              <TabsTrigger value="translation_map">翻訳マップ</TabsTrigger>
+              <TabsTrigger value="pattern_dictionary">パターン辞書</TabsTrigger>
+              <TabsTrigger value="removal_patterns">削除パターン</TabsTrigger>
+              <TabsTrigger value="advanced">高度な設定</TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="config" className="space-y-4 mt-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>API Key</Label>
+                  <Input
+                    type="password"
+                    value={translationConfig.config?.api_key || ""}
+                    onChange={(e) => updateConfig(["config", "api_key"], e.target.value)}
+                    placeholder="DeepL API Key"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Server URL</Label>
+                  <Input
+                    value={translationConfig.config?.server_url || ""}
+                    onChange={(e) => updateConfig(["config", "server_url"], e.target.value)}
+                    placeholder="https://api-free.deepl.com/v2/translate"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Rate Limit Delay (秒)</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={translationConfig.config?.rate_limit_delay || 0.1}
+                    onChange={(e) => updateConfig(["config", "rate_limit_delay"], parseFloat(e.target.value) || 0.1)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Max Retries</Label>
+                  <Input
+                    type="number"
+                    value={translationConfig.config?.max_retries || 3}
+                    onChange={(e) => updateConfig(["config", "max_retries"], parseInt(e.target.value) || 3)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Retry Delay (秒)</Label>
+                  <Input
+                    type="number"
+                    step="0.1"
+                    value={translationConfig.config?.retry_delay || 1.0}
+                    onChange={(e) => updateConfig(["config", "retry_delay"], parseFloat(e.target.value) || 1.0)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Cache Max Size</Label>
+                  <Input
+                    type="number"
+                    value={translationConfig.config?.cache_max_size || 10000}
+                    onChange={(e) => updateConfig(["config", "cache_max_size"], parseInt(e.target.value) || 10000)}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Max Bytes</Label>
+                  <Input
+                    type="number"
+                    value={translationConfig.config?.max_bytes || 32}
+                    onChange={(e) => updateConfig(["config", "max_bytes"], parseInt(e.target.value) || 32)}
+                  />
+                </div>
+              </div>
+            </TabsContent>
+
+            <TabsContent value="translation_map" className="mt-4">
+              <TranslationMapEditor
+                translationMap={translationConfig.translation_map || {}}
+                onUpdate={updateDictionary}
+              />
+            </TabsContent>
+
+            <TabsContent value="pattern_dictionary" className="mt-4">
+              <PatternDictionaryEditor
+                patternDictionary={translationConfig.pattern_dictionary || {}}
+                onUpdate={updatePattern}
+                onAddCategory={addPatternCategory}
+                onDeleteCategory={deletePatternCategory}
+                onRenameCategory={renamePatternCategory}
+              />
+            </TabsContent>
+
+            <TabsContent value="removal_patterns" className="mt-4">
+              <RemovalPatternsEditor
+                removalPatterns={translationConfig.removal_patterns || {}}
+                onUpdate={updateRemovalPattern}
+                onAddCategory={addRemovalPatternCategory}
+                onDeleteCategory={deleteRemovalPatternCategory}
+                onRenameCategory={renameRemovalPatternCategory}
+              />
+            </TabsContent>
+
+            <TabsContent value="advanced" className="mt-4">
+              <AdvancedSettingsEditor
+                config={translationConfig}
+                onUpdate={updateConfig}
+                onAddItem={addAdvancedItem}
+                onDeleteItem={deleteAdvancedItem}
+                onRenameItem={renameAdvancedItem}
+              />
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+    </div>
+  )
+}
+
+// Translation Map Editor Component
+function TranslationMapEditor({ translationMap, onUpdate }: { translationMap: Record<string, string>, onUpdate: (key: string, source: string, target: string) => void }) {
+  const [searchTerm, setSearchTerm] = useState("")
+  const [newSource, setNewSource] = useState("")
+  const [newTarget, setNewTarget] = useState("")
+
+  const filteredEntries = Object.entries(translationMap).filter(([source]) =>
+    source.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    translationMap[source].toLowerCase().includes(searchTerm.toLowerCase())
+  )
+
+  const handleAdd = () => {
+    if (newSource && newTarget) {
+      onUpdate("", newSource, newTarget)
+      setNewSource("")
+      setNewTarget("")
+    }
+  }
+
+  const handleDelete = (source: string) => {
+    onUpdate("", source, "")
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex gap-2">
+        <Input
+          placeholder="検索..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="flex-1"
+        />
+      </div>
+      <div className="border rounded-lg">
+        <ScrollArea className="h-[500px]">
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead className="w-[200px]">中国語</TableHead>
+                <TableHead>日本語</TableHead>
+                <TableHead className="w-[100px]">操作</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredEntries.map(([source, target]) => (
+                <TableRow key={source}>
+                  <TableCell>{source}</TableCell>
+                  <TableCell>
+                    <Input
+                      value={target}
+                      onChange={(e) => onUpdate("", source, e.target.value)}
+                      className="border-0 p-0 h-auto"
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(source)}
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </ScrollArea>
+      </div>
+      <div className="flex gap-2">
+        <Input
+          placeholder="中国語"
+          value={newSource}
+          onChange={(e) => setNewSource(e.target.value)}
+        />
+        <Input
+          placeholder="日本語"
+          value={newTarget}
+          onChange={(e) => setNewTarget(e.target.value)}
+        />
+        <Button onClick={handleAdd}>
+          <Plus className="h-4 w-4 mr-2" />
+          追加
+        </Button>
+      </div>
+      <p className="text-xs text-muted-foreground">
+        合計 {Object.keys(translationMap).length} エントリ
+      </p>
+    </div>
+  )
+}
+
+// Pattern Dictionary Editor Component
+function PatternDictionaryEditor({ 
+  patternDictionary, 
+  onUpdate,
+  onAddCategory,
+  onDeleteCategory,
+  onRenameCategory
+}: { 
+  patternDictionary: Record<string, string[]>
+  onUpdate: (category: string, patterns: string[]) => void
+  onAddCategory: (category: string) => void
+  onDeleteCategory: (category: string) => void
+  onRenameCategory: (oldCategory: string, newCategory: string) => void
+}) {
+  const [selectedCategory, setSelectedCategory] = useState<string>(Object.keys(patternDictionary)[0] || "")
+  const [newCategoryName, setNewCategoryName] = useState("")
+  const [editingCategory, setEditingCategory] = useState<string | null>(null)
+  const [newCategoryNameForRename, setNewCategoryNameForRename] = useState("")
+
+  const currentPatterns = patternDictionary[selectedCategory] || []
+  const [patternsText, setPatternsText] = useState(currentPatterns.join("\n"))
+
+  useEffect(() => {
+    setPatternsText(currentPatterns.join("\n"))
+  }, [selectedCategory, currentPatterns])
+
+  useEffect(() => {
+    if (!selectedCategory && Object.keys(patternDictionary).length > 0) {
+      setSelectedCategory(Object.keys(patternDictionary)[0])
+    }
+  }, [patternDictionary, selectedCategory])
+
+  const handleSave = () => {
+    if (!selectedCategory) return
+    const patterns = patternsText.split("\n").map(p => p.trim()).filter(p => p)
+    onUpdate(selectedCategory, patterns)
+  }
+
+  const handleAddCategory = () => {
+    if (newCategoryName && !patternDictionary[newCategoryName]) {
+      onAddCategory(newCategoryName)
+      setSelectedCategory(newCategoryName)
+      setNewCategoryName("")
+    }
+  }
+
+  const handleDeleteCategory = (category: string) => {
+    if (Object.keys(patternDictionary).length <= 1) {
+      return // Don't delete the last category
+    }
+    onDeleteCategory(category)
+    if (selectedCategory === category) {
+      const remaining = Object.keys(patternDictionary).filter(c => c !== category)
+      setSelectedCategory(remaining[0] || "")
+    }
+  }
+
+  const handleRenameCategory = (oldCategory: string) => {
+    if (newCategoryNameForRename && !patternDictionary[newCategoryNameForRename]) {
+      onRenameCategory(oldCategory, newCategoryNameForRename)
+      setSelectedCategory(newCategoryNameForRename)
+      setEditingCategory(null)
+      setNewCategoryNameForRename("")
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="カテゴリを選択" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.keys(patternDictionary).map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button onClick={handleSave}>保存</Button>
+        <Button
+          variant="outline"
+          onClick={() => setEditingCategory(selectedCategory)}
+          disabled={!selectedCategory}
+        >
+          <Pencil className="h-4 w-4 mr-2" />
+          カテゴリ名を編集
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => handleDeleteCategory(selectedCategory)}
+          disabled={!selectedCategory || Object.keys(patternDictionary).length <= 1}
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          カテゴリを削除
+        </Button>
+      </div>
+
+      {editingCategory && (
+        <div className="flex gap-2 items-center p-3 border rounded-lg bg-muted">
+          <Input
+            placeholder="新しいカテゴリ名"
+            value={newCategoryNameForRename}
+            onChange={(e) => setNewCategoryNameForRename(e.target.value)}
+            className="flex-1"
+          />
+          <Button onClick={() => handleRenameCategory(editingCategory)}>
+            名前を変更
+          </Button>
+          <Button variant="outline" onClick={() => {
+            setEditingCategory(null)
+            setNewCategoryNameForRename("")
+          }}>
+            キャンセル
+          </Button>
+        </div>
+      )}
+
+      <div className="flex gap-2 items-center p-3 border rounded-lg">
+        <Input
+          placeholder="新しいカテゴリ名"
+          value={newCategoryName}
+          onChange={(e) => setNewCategoryName(e.target.value)}
+          className="flex-1"
+        />
+        <Button onClick={handleAddCategory}>
+          <Plus className="h-4 w-4 mr-2" />
+          カテゴリを追加
+        </Button>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <Label>{selectedCategory || "カテゴリを選択してください"}</Label>
+          {selectedCategory && (
+            <span className="text-xs text-muted-foreground">
+              {currentPatterns.length} パターン
+            </span>
+          )}
+        </div>
+        <Textarea
+          value={patternsText}
+          onChange={(e) => setPatternsText(e.target.value)}
+          rows={15}
+          placeholder="1行に1つのパターンを入力"
+          disabled={!selectedCategory}
+        />
+      </div>
+    </div>
+  )
+}
+
+// Removal Patterns Editor Component
+function RemovalPatternsEditor({ 
+  removalPatterns, 
+  onUpdate,
+  onAddCategory,
+  onDeleteCategory,
+  onRenameCategory
+}: { 
+  removalPatterns: Record<string, string[]>
+  onUpdate: (category: string, patterns: string[]) => void
+  onAddCategory: (category: string) => void
+  onDeleteCategory: (category: string) => void
+  onRenameCategory: (oldCategory: string, newCategory: string) => void
+}) {
+  const [selectedCategory, setSelectedCategory] = useState<string>(Object.keys(removalPatterns)[0] || "")
+  const [newCategoryName, setNewCategoryName] = useState("")
+  const [editingCategory, setEditingCategory] = useState<string | null>(null)
+  const [newCategoryNameForRename, setNewCategoryNameForRename] = useState("")
+
+  const currentPatterns = removalPatterns[selectedCategory] || []
+  const [patternsText, setPatternsText] = useState(currentPatterns.join("\n"))
+
+  useEffect(() => {
+    setPatternsText(currentPatterns.join("\n"))
+  }, [selectedCategory, currentPatterns])
+
+  useEffect(() => {
+    if (!selectedCategory && Object.keys(removalPatterns).length > 0) {
+      setSelectedCategory(Object.keys(removalPatterns)[0])
+    }
+  }, [removalPatterns, selectedCategory])
+
+  const handleSave = () => {
+    if (!selectedCategory) return
+    const patterns = patternsText.split("\n").map(p => p.trim()).filter(p => p)
+    onUpdate(selectedCategory, patterns)
+  }
+
+  const handleAddCategory = () => {
+    if (newCategoryName && !removalPatterns[newCategoryName]) {
+      onAddCategory(newCategoryName)
+      setSelectedCategory(newCategoryName)
+      setNewCategoryName("")
+    }
+  }
+
+  const handleDeleteCategory = (category: string) => {
+    if (Object.keys(removalPatterns).length <= 1) {
+      return // Don't delete the last category
+    }
+    onDeleteCategory(category)
+    if (selectedCategory === category) {
+      const remaining = Object.keys(removalPatterns).filter(c => c !== category)
+      setSelectedCategory(remaining[0] || "")
+    }
+  }
+
+  const handleRenameCategory = (oldCategory: string) => {
+    if (newCategoryNameForRename && !removalPatterns[newCategoryNameForRename]) {
+      onRenameCategory(oldCategory, newCategoryNameForRename)
+      setSelectedCategory(newCategoryNameForRename)
+      setEditingCategory(null)
+      setNewCategoryNameForRename("")
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <Select value={selectedCategory} onValueChange={setSelectedCategory}>
+          <SelectTrigger className="w-[200px]">
+            <SelectValue placeholder="カテゴリを選択" />
+          </SelectTrigger>
+          <SelectContent>
+            {Object.keys(removalPatterns).map((cat) => (
+              <SelectItem key={cat} value={cat}>
+                {cat}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button onClick={handleSave}>保存</Button>
+        <Button
+          variant="outline"
+          onClick={() => setEditingCategory(selectedCategory)}
+          disabled={!selectedCategory}
+        >
+          <Pencil className="h-4 w-4 mr-2" />
+          カテゴリ名を編集
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => handleDeleteCategory(selectedCategory)}
+          disabled={!selectedCategory || Object.keys(removalPatterns).length <= 1}
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          カテゴリを削除
+        </Button>
+      </div>
+
+      {editingCategory && (
+        <div className="flex gap-2 items-center p-3 border rounded-lg bg-muted">
+          <Input
+            placeholder="新しいカテゴリ名"
+            value={newCategoryNameForRename}
+            onChange={(e) => setNewCategoryNameForRename(e.target.value)}
+            className="flex-1"
+          />
+          <Button onClick={() => handleRenameCategory(editingCategory)}>
+            名前を変更
+          </Button>
+          <Button variant="outline" onClick={() => {
+            setEditingCategory(null)
+            setNewCategoryNameForRename("")
+          }}>
+            キャンセル
+          </Button>
+        </div>
+      )}
+
+      <div className="flex gap-2 items-center p-3 border rounded-lg">
+        <Input
+          placeholder="新しいカテゴリ名"
+          value={newCategoryName}
+          onChange={(e) => setNewCategoryName(e.target.value)}
+          className="flex-1"
+        />
+        <Button onClick={handleAddCategory}>
+          <Plus className="h-4 w-4 mr-2" />
+          カテゴリを追加
+        </Button>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <Label>{selectedCategory || "カテゴリを選択してください"}</Label>
+          {selectedCategory && (
+            <span className="text-xs text-muted-foreground">
+              {currentPatterns.length} パターン
+            </span>
+          )}
+        </div>
+        <Textarea
+          value={patternsText}
+          onChange={(e) => setPatternsText(e.target.value)}
+          rows={15}
+          placeholder="1行に1つのパターンを入力"
+          disabled={!selectedCategory}
+        />
+      </div>
+    </div>
+  )
+}
+
+// Advanced Settings Editor Component
+function AdvancedSettingsEditor({
+  config,
+  onUpdate,
+  onAddItem,
+  onDeleteItem,
+  onRenameItem
+}: {
+  config: any
+  onUpdate: (path: string[], value: any) => void
+  onAddItem: (itemName: string) => void
+  onDeleteItem: (itemName: string) => void
+  onRenameItem: (oldName: string, newName: string) => void
+}) {
+  const [selectedItem, setSelectedItem] = useState<string>("chinese_brackets")
+  const [newItemName, setNewItemName] = useState("")
+  const [editingItem, setEditingItem] = useState<string | null>(null)
+  const [newItemNameForRename, setNewItemNameForRename] = useState("")
+
+  // Get all array-type items (excluding config, translation_map, pattern_dictionary, removal_patterns, unicode_ranges)
+  const advancedItems = Object.keys(config || {}).filter(key => 
+    Array.isArray(config[key]) && 
+    !['config', 'translation_map', 'pattern_dictionary', 'removal_patterns', 'unicode_ranges'].includes(key)
+  )
+
+  const currentValue = config[selectedItem] || []
+  const [valueText, setValueText] = useState(Array.isArray(currentValue) ? currentValue.join(", ") : "")
+
+  useEffect(() => {
+    const val = config[selectedItem] || []
+    setValueText(Array.isArray(val) ? val.join(", ") : "")
+  }, [selectedItem, config])
+
+  useEffect(() => {
+    if (!selectedItem && advancedItems.length > 0) {
+      setSelectedItem(advancedItems[0])
+    }
+  }, [advancedItems, selectedItem])
+
+  const handleSave = () => {
+    if (!selectedItem) return
+    const values = valueText.split(",").map(v => v.trim()).filter(v => v)
+    onUpdate([selectedItem], values)
+  }
+
+  const handleAddItem = () => {
+    if (newItemName && !config[newItemName]) {
+      onAddItem(newItemName)
+      setSelectedItem(newItemName)
+      setNewItemName("")
+    }
+  }
+
+  const handleDeleteItem = (itemName: string) => {
+    if (advancedItems.length <= 1) {
+      return // Don't delete the last item
+    }
+    onDeleteItem(itemName)
+    if (selectedItem === itemName) {
+      const remaining = advancedItems.filter(i => i !== itemName)
+      setSelectedItem(remaining[0] || "")
+    }
+  }
+
+  const handleRenameItem = (oldName: string) => {
+    if (newItemNameForRename && !config[newItemNameForRename]) {
+      onRenameItem(oldName, newItemNameForRename)
+      setSelectedItem(newItemNameForRename)
+      setEditingItem(null)
+      setNewItemNameForRename("")
+    }
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-2 flex-wrap">
+        <Select value={selectedItem} onValueChange={setSelectedItem}>
+          <SelectTrigger className="w-[250px]">
+            <SelectValue placeholder="項目を選択" />
+          </SelectTrigger>
+          <SelectContent>
+            {advancedItems.map((item) => (
+              <SelectItem key={item} value={item}>
+                {item}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <Button onClick={handleSave}>保存</Button>
+        <Button
+          variant="outline"
+          onClick={() => setEditingItem(selectedItem)}
+          disabled={!selectedItem}
+        >
+          <Pencil className="h-4 w-4 mr-2" />
+          項目名を編集
+        </Button>
+        <Button
+          variant="outline"
+          onClick={() => handleDeleteItem(selectedItem)}
+          disabled={!selectedItem || advancedItems.length <= 1}
+        >
+          <Trash2 className="h-4 w-4 mr-2" />
+          項目を削除
+        </Button>
+      </div>
+
+      {editingItem && (
+        <div className="flex gap-2 items-center p-3 border rounded-lg bg-muted">
+          <Input
+            placeholder="新しい項目名"
+            value={newItemNameForRename}
+            onChange={(e) => setNewItemNameForRename(e.target.value)}
+            className="flex-1"
+          />
+          <Button onClick={() => handleRenameItem(editingItem)}>
+            名前を変更
+          </Button>
+          <Button variant="outline" onClick={() => {
+            setEditingItem(null)
+            setNewItemNameForRename("")
+          }}>
+            キャンセル
+          </Button>
+        </div>
+      )}
+
+      <div className="flex gap-2 items-center p-3 border rounded-lg">
+        <Input
+          placeholder="新しい項目名"
+          value={newItemName}
+          onChange={(e) => setNewItemName(e.target.value)}
+          className="flex-1"
+        />
+        <Button onClick={handleAddItem}>
+          <Plus className="h-4 w-4 mr-2" />
+          項目を追加
+        </Button>
+      </div>
+
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <Label>{selectedItem || "項目を選択してください"}</Label>
+          {selectedItem && (
+            <span className="text-xs text-muted-foreground">
+              {Array.isArray(config[selectedItem]) ? config[selectedItem].length : 0} エントリ
+            </span>
+          )}
+        </div>
+        <Textarea
+          value={valueText}
+          onChange={(e) => setValueText(e.target.value)}
+          rows={8}
+          placeholder="カンマ区切りで値を入力"
+          disabled={!selectedItem}
+        />
+        <p className="text-xs text-muted-foreground mt-1">
+          カンマ区切りで複数の値を入力できます
+        </p>
+      </div>
+    </div>
+  )
+}
 const CATEGORY_SIZE_NONE = "__size_none__"
 
 const CATEGORY_SIZE_OPTIONS = [
@@ -1055,7 +2000,7 @@ const loadPrimaryCategories = async () => {
       </div>
 
       <Tabs defaultValue="pricing" className="space-y-6">
-        <TabsList className="grid w-full grid-cols-7">
+        <TabsList className="grid w-full grid-cols-8">
           <TabsTrigger value="pricing" className="gap-2">
             <DollarSign className="h-4 w-4" />
             価格設定
@@ -1083,6 +2028,10 @@ const loadPrimaryCategories = async () => {
           <TabsTrigger value="risk-products" className="gap-2">
             <Shield className="h-4 w-4" />
             規定設定
+          </TabsTrigger>
+          <TabsTrigger value="translation" className="gap-2">
+            <Languages className="h-4 w-4" />
+            翻訳設定
           </TabsTrigger>
         </TabsList>
 
@@ -2071,6 +3020,11 @@ const loadPrimaryCategories = async () => {
               )}
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* Translation Base Settings */}
+        <TabsContent value="translation">
+          <TranslationBaseSettings />
         </TabsContent>
       </Tabs>
 
