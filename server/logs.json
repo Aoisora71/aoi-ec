@@ -1,0 +1,26 @@
+[
+  {
+    "id": "1766902796788_8212",
+    "timestamp": "2025-12-28T15:19:56.788100",
+    "level": "info",
+    "message": "Automatic refresh disabled",
+    "details": "Auto refresh is turned off in settings",
+    "source": "auto-refresh"
+  },
+  {
+    "id": "1766902796786_9804",
+    "timestamp": "2025-12-28T15:19:56.787013",
+    "level": "info",
+    "message": "Licel Store API server started",
+    "details": "Server initialization completed",
+    "source": "startup"
+  },
+  {
+    "id": "1766902795748_3080",
+    "timestamp": "2025-12-28T15:19:55.749017",
+    "level": "warning",
+    "message": "Connection pool initialization failed",
+    "details": "Server will continue but may have reduced performance. Ensure PostgreSQL is running.",
+    "source": "startup"
+  }
+]

@@ -1,0 +1,518 @@
+{
+    "5850422026080": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2220",
+        "selectorValues": {
+            "size": "S",
+            "color": "【热卖推荐】8001"
+        }
+    },
+    "5850422026081": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2220",
+        "selectorValues": {
+            "size": "M",
+            "color": "【热卖推荐】8001"
+        }
+    },
+    "5850422026082": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2220",
+        "selectorValues": {
+            "size": "L",
+            "color": "【热卖推荐】8001"
+        }
+    },
+    "5850422026086": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2220",
+        "selectorValues": {
+            "size": "XL",
+            "color": "【热卖推荐】8001"
+        }
+    },
+    "5852016627956": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2430",
+        "selectorValues": {
+            "size": "S",
+            "color": "【热卖推荐】8008"
+        }
+    },
+    "5852016627957": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2430",
+        "selectorValues": {
+            "size": "M",
+            "color": "【热卖推荐】8008"
+        }
+    },
+    "5852016627958": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2430",
+        "selectorValues": {
+            "size": "L",
+            "color": "【热卖推荐】8008"
+        }
+    },
+    "5852016627963": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2430",
+        "selectorValues": {
+            "size": "XL",
+            "color": "【热卖推荐】8008"
+        }
+    },
+    "6099024554997": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2430",
+        "selectorValues": {
+            "size": "S",
+            "color": "【热卖推荐】8007"
+        }
+    },
+    "6099024554998": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2430",
+        "selectorValues": {
+            "size": "M",
+            "color": "【热卖推荐】8007"
+        }
+    },
+    "6099024554999": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2430",
+        "selectorValues": {
+            "size": "L",
+            "color": "【热卖推荐】8007"
+        }
+    },
+    "6099026366003": {
+        "features": {
+            "noshi": false,
+            "restockNotification": false
+        },
+        "shipping": {
+            "postageIncluded": true
+        },
+        "attributes": [
+            {
+                "name": "ブランド名",
+                "values": [
+                    "LICEL"
+                ]
+            },
+            {
+                "name": "シリーズ名",
+                "values": [
+                    "-"
+                ]
+            },
+            {
+                "name": "原産国／製造国",
+                "values": [
+                    "中国"
+                ]
+            },
+            {
+                "name": "総個数",
+                "values": [
+                    "1"
+                ]
+            }
+        ],
+        "articleNumber": {
+            "exemptionReason": 5
+        },
+        "standardPrice": "2430",
+        "selectorValues": {
+            "size": "XL",
+            "color": "【热卖推荐】8007"
+        }
+    }
+}

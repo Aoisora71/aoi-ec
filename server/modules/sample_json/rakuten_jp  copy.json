@@ -1,0 +1,240 @@
+
+    "title": "水郷どり炊き込みご飯 2合用 鶏めし 鶏飯 お取り寄せグルメ テレビ とりめし 炊き込みご飯の素 釜めし 釜飯 釜飯の素 鶏肉",
+    "tagline": "料亭の味をご家庭で・・・上品で繊細、それでいて鶏肉の旨みが凝縮されている逸品です。［鶏肉 炊き込みご飯の素 お取り寄せグルメ テレビ ］",
+    "productDescription": {
+        "pc": "explanation for PC",
+        "sp": "explanation for SP"
+    },
+    "salesDescription": "salesexplanation for PC",
+    "images": [
+        {
+            "type": "CABINET",
+            "location": "/01003752/torimesi.jpg",
+            "alt": "itemname"
+        }
+    ],
+    "whiteBgImage": {
+        "type": "GOLD",
+        "location": "/torimesi.jpg"
+    },
+    "video": {
+        "type": "HTML",
+        "parameters": {
+            "value": "<script src=\"//stream.cms.rakuten.co.jp/gate/play/?w=320&h=286&mid=1101692986&vid=5792214557001\" type=\"text/javascript\"></script>"
+        }
+    },
+    "genreId": "201198",
+    "tags": [
+        7654321,
+        9000000
+    ],
+    "hideItem": false,
+    "unlimitedInventoryFlag": false,
+    "customizationOptions": [
+        {
+            "displayName": "ギフト包装",
+            "inputType": "SINGLE_SELECTION",
+            "required": true,
+            "selections": [
+                {
+                    "displayValue": "はい"
+                }
+            ]
+        }
+    ],
+    "purchasablePeriod": {
+        "start": "2021-07-11T15:00:00+09:00",
+        "end": "2021-07-31T14:59:59+09:00"
+    },
+    "features": {
+        "searchVisibility": "ALWAYS_VISIBLE",
+        "shopContact": true,
+        "review": "SHOP_SETTING",
+        "displayManufacturerContents": false,
+        "displayNormalCartButton": true,
+        "displaySubscriptionCartButton": false,
+        "inventoryDisplay": "HIDDEN_STOCK",
+        "socialGiftFlag": false
+    },
+    "payment": {
+        "taxIncluded": false,
+        "taxRate": "0.1",
+        "cashOnDeliveryFeeIncluded": true
+    },
+    "pointCampaign": {
+        "applicablePeriod": {
+            "start": "2018-04-28T07:59:49+09:00",
+            "end": "2018-05-28T07:59:49+09:00"
+        },
+        "benefits": {
+            "pointRate": 15
+        },
+        "optimization": {
+            "maxPointRate": 15
+        }
+    },
+    "itemDisplaySequence": 999999999,
+    "layout": {
+        "itemLayoutId": 1,
+        "navigationId": 10,
+        "layoutSequenceId": 20,
+        "smallDescriptionId": 30,
+        "largeDescriptionId": 40,
+        "showcaseId": 50
+    },
+    "variantSelectors": [
+        {
+            "key": "size-key",
+            "displayName": "サイズ",
+            "values": [
+                {
+                    "displayValue": "Sサイズ"
+                },
+                {
+                    "displayValue": "Mサイズ"
+                }
+            ]
+        },
+        {
+            "key": "color-key",
+            "displayName": "カラー",
+            "values": [
+                {
+                    "displayValue": "青色"
+                }
+            ]
+        }
+    ],
+    "variants": {
+        "sku-1": {
+            "merchantDefinedSkuId": "システム連携SKU商品番号",
+            "selectorValues": {
+                "color-key": "青色",
+                "size-key": "Sサイズ"
+            },
+            "images": [
+                {
+                    "type": "CABINET",
+                    "location": "/01003752/dog_15.jpg",
+                    "alt": "sku-image"
+                }
+            ],
+            "restockOnCancel": true,
+            "backOrderFlag": false,
+            "normalDeliveryDateId": 1,
+            "backOrderDeliveryDateId": 2,
+            "articleNumber": {
+                "value": "4902780029294",
+            },
+            "hidden": true,
+            "orderQuantityLimit": 3,
+            "features": {
+                "restockNotification": true,
+                "noshi": true
+            },
+            "standardPrice": "810",
+            "referencePrice": {
+                "displayType": "REFERENCE_PRICE",
+                "type": 1,
+                "value": "15000"
+            },
+            "shipping": {
+                "fee": "1000",
+                "postageIncluded": false,
+                "shopAreaSoryoPatternId": 2,
+                "shippingMethodGroup": "10",
+                "postageSegment": {
+                    "local": 1,
+                    "overseas": 2
+                },
+                "overseasDeliveryId": 3,
+                "singleItemShipping": 5,
+                "okihaiSetting": true
+            },
+            "specs": [
+                {
+                    "label": "Country of origin",
+                    "value": "Japan"
+                }
+            ],
+            "attributes": [
+              {
+                "name": "ブランド名",
+                "values": [
+                  "お米"
+                ]
+                },
+                {
+                  "name": "シリーズ名",
+                  "values": [
+                    "鶏めし"
+                  ]
+                },
+               {
+                  "name": "原産国／製造国",
+                  "values": [
+                    "日本"
+                  ]
+               },
+               {
+                 "name": "総個数",
+                 "values": [
+                   "1"
+                 ]
+               },
+               {
+                 "name": "総重量",
+                 "values": [
+                   "10"
+                  ],
+                 "unit": "kg"
+                }
+             ]
+        },
+        "sku-2": {
+            "selectorValues": {
+                "color-key": "青色",
+                "size-key": "Mサイズ"
+            },
+            "restockOnCancel": false,
+            "backOrderFlag": false,
+            "standardPrice": "810",
+            "articleNumber":{
+              "value":"0689640032932",
+            },
+            "attributes": [
+              {
+                "name": "ブランド名",
+                "values": [
+                  "お米"
+                ]
+                },
+                {
+                  "name": "シリーズ名",
+                  "values": [
+                    "鶏めし"
+                  ]
+                },
+               {
+                  "name": "原産国／製造国",
+                  "values": [
+                    "日本"
+                  ]
+               },
+               {
+                 "name": "総個数",
+                 "values": [
+                   "1"
+                 ]
+               },
+               {
+                 "name": "総重量",
+                 "values": [
+                   "10"
+                  ],
+                 "unit": "kg"
+                }
+             ]
+        }
+    }
+}'

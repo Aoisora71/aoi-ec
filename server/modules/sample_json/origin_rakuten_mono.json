@@ -1,0 +1,159 @@
+{
+    "itemNumber": "ITEM-0001",
+    "title": "高輝度デュアルビームLEDバイクライト",
+    "tagline": "夜を恐れない、4眼ハイパワーライト",
+    "productDescription": {
+      "pc": "<p>高輝度フォーカスレンズを搭載し、夜間走行でも抜群の視認性を実現。アルミ合金ボディで耐久性と放熱性を両立。</p>",
+      "sp": "高輝度レンズ搭載。夜間走行でも明るく安全。"
+    },
+    "salesDescription": "バイク・自転車用の高輝度LEDライト。防水設計・USB充電・デュアルビーム切替機能付き。最大2000ルーメン。",
+    "itemType": "NORMAL",
+    "genreId": "201198",
+    "tags": [
+      
+    ],
+  
+    "hideItem": false,
+    "unlimitedInventoryFlag": false,
+    "images": [
+      {
+        "type": "CABINET",
+        "location": "/234235/234235_3_jpg.jpg",
+        "alt": "メイン画像 高輝度LEDバイクライト"
+      },
+      {
+        "type": "CABINET",
+        "location": "/234235/234235_2_jpg.jpg",
+        "alt": "サイドビュー"
+      },
+      {
+        "type": "CABINET",
+        "location": "/234235/234235_1_jpg.jpg",
+        "alt": "4眼ディテール"
+      }
+    ],
+    "features": {
+      "searchVisibility": "ALWAYS_VISIBLE",
+      "displayNormalCartButton": true,
+      "displaySubscriptionCartButton": false,
+      "inventoryDisplay": "DISPLAY_ABSOLUTE_STOCK_COUNT",
+      "shopContact": true,
+      "review": "SHOP_SETTING",
+      "displayManufacturerContents": false
+    },
+    "payment": {
+      "taxIncluded": true,
+      "taxRate": "0.1",
+      "cashOnDeliveryFeeIncluded": false
+    },
+    "layout": {
+      "itemLayoutId": 1,
+      "navigationId": 0,
+      "layoutSequenceId": 0,
+      "smallDescriptionId": 0,
+      "largeDescriptionId": 0,
+      "showcaseId": 0
+    },
+    "variantSelectors": [
+      {
+        "key": "color",
+        "displayName": "カラー",
+        "values": [
+          {
+            "displayValue": "シルバー"
+          },
+          {
+            "displayValue": "ブラック"
+          }
+        ]
+      }
+    ],
+    "variants": {
+      "bike-light-001-silver-1": {
+        "selectorValues": {
+          "color": "シルバー"
+        },
+        "standardPrice": "2980",
+        "articleNumber": {
+          "exemptionReason": 5
+        },
+        "attributes": [
+          {
+            "name": "ブランド名",
+            "values": [
+              "Licel"
+            ]
+          },
+          {
+            "name": "シリーズ名",
+            "values": [
+              "1"
+            ]
+          },
+          {
+            "name": "原産国／製造国",
+            "values": [
+              "中国"
+            ]
+          },
+          {
+            "name": "総個数",
+            "values": [
+              "1"
+            ]
+          }
+        ],
+        "shipping": {
+          "postageIncluded": true
+        },
+        "features": {
+          "restockNotification": true,
+          "noshi": false
+        }
+      },
+     
+      "bike-light-001-black-1": {
+        "selectorValues": {
+          "color": "ブラック"
+        },
+        "standardPrice": "3280",
+        "articleNumber": {
+          "exemptionReason": 5
+        },
+        "attributes": [
+          {
+            "name": "ブランド名",
+            "values": [
+              "ノーブランド"
+            ]
+          },
+          {
+            "name": "シリーズ名",
+            "values": [
+              "LEDバイクライト"
+            ]
+          },
+          {
+            "name": "原産国／製造国",
+            "values": [
+              "日本"
+            ]
+          },
+          {
+            "name": "総個数",
+            "values": [
+              "1"
+            ]
+          }
+        ],
+        "shipping": {
+          "postageIncluded": true
+        },
+        "features": {
+          "restockNotification": true,
+          "noshi": false
+        }
+      }
+     
+      }
+    }

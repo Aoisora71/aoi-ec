@@ -1,0 +1,61 @@
+{
+  "folder_id": 12668971,
+  "folder_name": "10004",
+  "uploaded_files": [
+    {
+      "source_url": "https://licel-product-image.s3.ap-southeast-2.amazonaws.com/products/820514630637/01499260/01499260_1.jpg",
+      "file_id": 101583939,
+      "file_name": "10004_1",
+      "file_path": "10004_1_jpg.jpg",
+      "folder_id": 12668971,
+      "folder_name": "10004",
+      "location": "/10004/imgrc0101583939.jpg",
+      "rakuten_image_url": "https://cabinet.rakuten-rms.com/image/10004/imgrc0101583939.jpg"
+    },
+    {
+      "source_url": "https://licel-product-image.s3.ap-southeast-2.amazonaws.com/products/820514630637/01499260/01499260_2.jpg",
+      "file_id": 101583940,
+      "file_name": "10004_2",
+      "file_path": "10004_2_jpg.jpg",
+      "folder_id": 12668971,
+      "folder_name": "10004",
+      "location": "/10004/imgrc0101583940.jpg",
+      "rakuten_image_url": "https://cabinet.rakuten-rms.com/image/10004/imgrc0101583940.jpg"
+    },
+    {
+      "source_url": "https://licel-product-image.s3.ap-southeast-2.amazonaws.com/products/820514630637/01499260/01499260_3.jpg",
+      "file_id": 101583941,
+      "file_name": "10004_3",
+      "file_path": "10004_3_jpg.jpg",
+      "folder_id": 12668971,
+      "folder_name": "10004",
+      "location": "/10004/imgrc0101583941.jpg",
+      "rakuten_image_url": "https://cabinet.rakuten-rms.com/image/10004/imgrc0101583941.jpg"
+    },
+    {
+      "source_url": "https://licel-product-image.s3.ap-southeast-2.amazonaws.com/products/820514630637/01499260/01499260_4.jpg",
+      "file_id": 101583942,
+      "file_name": "10004_4",
+      "file_path": "10004_4_jpg.jpg",
+      "folder_id": 12668971,
+      "folder_name": "10004",
+      "location": "/10004/imgrc0101583942.jpg",
+      "rakuten_image_url": "https://cabinet.rakuten-rms.com/image/10004/imgrc0101583942.jpg"
+    },
+    {
+      "source_url": "https://licel-product-image.s3.ap-southeast-2.amazonaws.com/products/820514630637/01499260/01499260_5.jpg",
+      "file_id": 101583947,
+      "file_name": "10004_5",
+      "file_path": "10004_5_jpg.jpg",
+      "folder_id": 12668971,
+      "folder_name": "10004",
+      "location": "/10004/imgrc0101583947.jpg",
+      "rakuten_image_url": "https://cabinet.rakuten-rms.com/image/10004/imgrc0101583947.jpg"
+    }
+  ],
+  "summary": {
+    "total": 5,
+    "successful": 5,
+    "failed": 0
+  }
+}

@@ -1,0 +1,1164 @@
+{
+  "images": [
+    "https://cbu01.alicdn.com/img/ibank/O1CN01Dt9bvE1rVnOTMAKc8_!!2214591735637-0-cib.400x400.jpg",
+    "https://cbu01.alicdn.com/img/ibank/O1CN01quJnhb1rVnOckDglV_!!2214591735637-0-cib.400x400.jpg",
+    "https://cbu01.alicdn.com/img/ibank/O1CN01FEqPJ41rVnOhGdVCO_!!2214591735637-0-cib.400x400.jpg",
+    "https://cbu01.alicdn.com/img/ibank/O1CN01KK8CUv1rVnOhGbtOU_!!2214591735637-0-cib.400x400.jpg"
+  ],
+  "shopId": "BBBj8K8su-lSSbTCpJwFIqd3Q",
+  "address": "浙江省嘉兴市",
+  "fromUrl": "https://detail.1688.com/offer/681376870394.html",
+  "goodsId": "681376870394",
+  "shopName": "跨联服装厂",
+  "goodsInfo": {
+    "unit": "件",
+    "detail": [
+      {
+        "keyT": "ソースカテゴリ",
+        "valueT": "現物"
+      },
+      {
+        "keyT": "マテリアル機能",
+        "valueT": "洗濯機"
+      },
+      {
+        "keyT": "貨物番号",
+        "valueT": "809"
+      },
+      {
+        "keyT": "ブランド",
+        "valueT": "Celaln kigmj n"
+      },
+      {
+        "keyT": "デザイン",
+        "valueT": "ヘッドセット"
+      },
+      {
+        "keyT": "プレートタイプ",
+        "valueT": "お手入れタイプ"
+      },
+      {
+        "keyT": "襟タイプ",
+        "valueT": "タートルネック"
+      },
+      {
+        "keyT": "袖の長さ",
+        "valueT": "長袖"
+      },
+      {
+        "keyT": "厚さが薄い",
+        "valueT": "普通"
+      },
+      {
+        "keyT": "スタイル",
+        "valueT": "レジャー"
+      },
+      {
+        "keyT": "デザインの詳細",
+        "valueT": "リブ生地"
+      },
+      {
+        "keyT": "ゴールドラッシュのカテゴリ",
+        "valueT": "ファッション都市(24 ~ 35歳)"
+      },
+      {
+        "keyT": "在庫ですか",
+        "valueT": "はい"
+      },
+      {
+        "keyT": "在庫タイプ",
+        "valueT": "全体"
+      },
+      {
+        "keyT": "人ごみに合っている",
+        "valueT": "青年"
+      },
+      {
+        "keyT": "発売年/季節",
+        "valueT": "2022年冬"
+      },
+      {
+        "keyT": "生地名",
+        "valueT": "コットン混紡"
+      },
+      {
+        "keyT": "メイン生地成分",
+        "valueT": "ポリエステル繊維 (ポリエステル)"
+      },
+      {
+        "keyT": "メイン生地成分の含有量",
+        "valueT": "33"
+      },
+      {
+        "keyT": "適用シーン",
+        "valueT": "日常"
+      },
+      {
+        "keyT": "季節にぴったり",
+        "valueT": "冬"
+      },
+      {
+        "keyT": "適用グループ",
+        "valueT": "青年"
+      },
+      {
+        "keyT": "カラー",
+        "valueT": "ベージュ,ホワイト,グレー,黒,ワインレッド,紺色"
+      },
+      {
+        "keyT": "サイズ",
+        "valueT": "165/m,170/l,175/XL,180/xxxl,185/xxxl,190/xxxxxx"
+      },
+      {
+        "keyT": "クラフト",
+        "valueT": "植毛"
+      },
+      {
+        "keyT": "主要下流プラットフォーム",
+        "valueT": "Ebay,アマゾン,Wish,速売通,独立駅,Lazada"
+      },
+      {
+        "keyT": "主な販売地域",
+        "valueT": "アフリカ,ヨーロッパ,南米,東南アジア,北アメリカ,北东アジア,中東"
+      },
+      {
+        "keyT": "認可可能な自社ブランドがあります",
+        "valueT": "いいえ"
+      },
+      {
+        "keyT": "クロスボーダー輸出専用供給源ですか",
+        "valueT": "はい"
+      },
+      {
+        "keyT": "オリジナルデザインのソース",
+        "valueT": "いいえ"
+      },
+      {
+        "keyT": "品質検査報告の有無",
+        "valueT": "はい"
+      },
+      {
+        "keyT": "品質検査報告番号",
+        "valueT": "その他"
+      },
+      {
+        "keyT": "適用年齢層",
+        "valueT": "成人"
+      },
+      {
+        "keyT": "適用性別",
+        "valueT": "男"
+      },
+      {
+        "keyT": "製品カテゴリ",
+        "valueT": "カットソー"
+      }
+    ],
+    "priceRanges": [
+      {
+        "priceMax": "29.5",
+        "priceMin": "29.5",
+        "startQuantity": 1
+      },
+      {
+        "priceMax": "29.0",
+        "priceMin": "29.0",
+        "startQuantity": 10
+      },
+      {
+        "priceMax": "28.0",
+        "priceMin": "28.0",
+        "startQuantity": 50
+      }
+    ],
+    "specification": [
+      {
+        "keyT": "颜色",
+        "valueT": [
+          {
+            "name": "米色"
+          },
+          {
+            "name": "白色"
+          },
+          {
+            "name": "灰色"
+          },
+          {
+            "name": "黑色"
+          },
+          {
+            "name": "酒红色"
+          },
+          {
+            "name": "藏青色"
+          }
+        ]
+      },
+      {
+        "keyT": "尺码",
+        "valueT": [
+          {
+            "name": "165/M"
+          },
+          {
+            "name": "170/L"
+          },
+          {
+            "name": "175/XL"
+          },
+          {
+            "name": "180/XXL"
+          },
+          {
+            "name": "185/XXXL"
+          },
+          {
+            "name": "190/XXXXL"
+          }
+        ]
+      }
+    ],
+    "goodsInventory": [
+      {
+        "keyT": "米色㊖㊎165/M",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358572,
+            "specId": "1712a4cc8b2d43106b45858721cb9494",
+            "amountOnSale": 48488,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358572,
+            "specId": "1712a4cc8b2d43106b45858721cb9494",
+            "amountOnSale": 48488,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358572,
+            "specId": "1712a4cc8b2d43106b45858721cb9494",
+            "amountOnSale": 48488,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "米色㊖㊎170/L",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358573,
+            "specId": "54b10119d5119c886e5597cb1058f879",
+            "amountOnSale": 55282,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358573,
+            "specId": "54b10119d5119c886e5597cb1058f879",
+            "amountOnSale": 55282,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358573,
+            "specId": "54b10119d5119c886e5597cb1058f879",
+            "amountOnSale": 55282,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "米色㊖㊎175/XL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358574,
+            "specId": "c87eb3b17e8ef529ee6c5b3fab896f1f",
+            "amountOnSale": 55504,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358574,
+            "specId": "c87eb3b17e8ef529ee6c5b3fab896f1f",
+            "amountOnSale": 55504,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358574,
+            "specId": "c87eb3b17e8ef529ee6c5b3fab896f1f",
+            "amountOnSale": 55504,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "米色㊖㊎180/XXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358575,
+            "specId": "4b673224646275058d98a1e4b4145fa0",
+            "amountOnSale": 55210,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358575,
+            "specId": "4b673224646275058d98a1e4b4145fa0",
+            "amountOnSale": 55210,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358575,
+            "specId": "4b673224646275058d98a1e4b4145fa0",
+            "amountOnSale": 55210,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "米色㊖㊎185/XXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358576,
+            "specId": "d1feb1a74aabadb79bc0a185cea79aa7",
+            "amountOnSale": 55520,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358576,
+            "specId": "d1feb1a74aabadb79bc0a185cea79aa7",
+            "amountOnSale": 55520,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358576,
+            "specId": "d1feb1a74aabadb79bc0a185cea79aa7",
+            "amountOnSale": 55520,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "米色㊖㊎190/XXXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358577,
+            "specId": "1cc441267b5bb0eb9811aa342b06dd2d",
+            "amountOnSale": 55432,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358577,
+            "specId": "1cc441267b5bb0eb9811aa342b06dd2d",
+            "amountOnSale": 55432,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358577,
+            "specId": "1cc441267b5bb0eb9811aa342b06dd2d",
+            "amountOnSale": 55432,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "白色㊖㊎165/M",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358578,
+            "specId": "37797a833697ef05af0fb3336ba81baa",
+            "amountOnSale": 55345,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358578,
+            "specId": "37797a833697ef05af0fb3336ba81baa",
+            "amountOnSale": 55345,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358578,
+            "specId": "37797a833697ef05af0fb3336ba81baa",
+            "amountOnSale": 55345,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "白色㊖㊎170/L",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358579,
+            "specId": "bf358b790debe1e4a47f532bddd64626",
+            "amountOnSale": 55409,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358579,
+            "specId": "bf358b790debe1e4a47f532bddd64626",
+            "amountOnSale": 55409,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358579,
+            "specId": "bf358b790debe1e4a47f532bddd64626",
+            "amountOnSale": 55409,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "白色㊖㊎175/XL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358580,
+            "specId": "e50ddcb28b426dc54d38020658526786",
+            "amountOnSale": 55441,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358580,
+            "specId": "e50ddcb28b426dc54d38020658526786",
+            "amountOnSale": 55441,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358580,
+            "specId": "e50ddcb28b426dc54d38020658526786",
+            "amountOnSale": 55441,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "白色㊖㊎180/XXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358581,
+            "specId": "8c8bc7149e8896197afb719c43e83362",
+            "amountOnSale": 55516,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358581,
+            "specId": "8c8bc7149e8896197afb719c43e83362",
+            "amountOnSale": 55516,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358581,
+            "specId": "8c8bc7149e8896197afb719c43e83362",
+            "amountOnSale": 55516,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "白色㊖㊎185/XXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358582,
+            "specId": "3121a6131cc253ec355e4cb5b28f78c0",
+            "amountOnSale": 55527,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358582,
+            "specId": "3121a6131cc253ec355e4cb5b28f78c0",
+            "amountOnSale": 55527,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358582,
+            "specId": "3121a6131cc253ec355e4cb5b28f78c0",
+            "amountOnSale": 55527,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "白色㊖㊎190/XXXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358583,
+            "specId": "8abc3399bd9a2d18246a953ece90b7b5",
+            "amountOnSale": 55551,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358583,
+            "specId": "8abc3399bd9a2d18246a953ece90b7b5",
+            "amountOnSale": 55551,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358583,
+            "specId": "8abc3399bd9a2d18246a953ece90b7b5",
+            "amountOnSale": 55551,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "灰色㊖㊎165/M",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358584,
+            "specId": "191c1b01fa938c667acecbe7504672d9",
+            "amountOnSale": 55489,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358584,
+            "specId": "191c1b01fa938c667acecbe7504672d9",
+            "amountOnSale": 55489,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358584,
+            "specId": "191c1b01fa938c667acecbe7504672d9",
+            "amountOnSale": 55489,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "灰色㊖㊎170/L",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358585,
+            "specId": "f65036b654907ea2a2d253ce89a58f2c",
+            "amountOnSale": 55492,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358585,
+            "specId": "f65036b654907ea2a2d253ce89a58f2c",
+            "amountOnSale": 55492,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358585,
+            "specId": "f65036b654907ea2a2d253ce89a58f2c",
+            "amountOnSale": 55492,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "灰色㊖㊎175/XL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358586,
+            "specId": "da0f9eade7c514eb4c2d6246c7a8ca70",
+            "amountOnSale": 55507,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358586,
+            "specId": "da0f9eade7c514eb4c2d6246c7a8ca70",
+            "amountOnSale": 55507,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358586,
+            "specId": "da0f9eade7c514eb4c2d6246c7a8ca70",
+            "amountOnSale": 55507,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "灰色㊖㊎180/XXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358587,
+            "specId": "26719833a279bd17fd68c72e21e04168",
+            "amountOnSale": 55538,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358587,
+            "specId": "26719833a279bd17fd68c72e21e04168",
+            "amountOnSale": 55538,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358587,
+            "specId": "26719833a279bd17fd68c72e21e04168",
+            "amountOnSale": 55538,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "灰色㊖㊎185/XXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358588,
+            "specId": "761981196d55db5027dc75b7acefa084",
+            "amountOnSale": 55530,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358588,
+            "specId": "761981196d55db5027dc75b7acefa084",
+            "amountOnSale": 55530,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358588,
+            "specId": "761981196d55db5027dc75b7acefa084",
+            "amountOnSale": 55530,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "灰色㊖㊎190/XXXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358589,
+            "specId": "d40a41a107ba9ec11c49dbaffaa41fb1",
+            "amountOnSale": 55540,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358589,
+            "specId": "d40a41a107ba9ec11c49dbaffaa41fb1",
+            "amountOnSale": 55540,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358589,
+            "specId": "d40a41a107ba9ec11c49dbaffaa41fb1",
+            "amountOnSale": 55540,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "黑色㊖㊎165/M",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358590,
+            "specId": "062e50fc4a83ad0112eea6816588ac7c",
+            "amountOnSale": 55422,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358590,
+            "specId": "062e50fc4a83ad0112eea6816588ac7c",
+            "amountOnSale": 55422,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358590,
+            "specId": "062e50fc4a83ad0112eea6816588ac7c",
+            "amountOnSale": 55422,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "黑色㊖㊎170/L",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358591,
+            "specId": "ca260f19938ae21520815e749791198f",
+            "amountOnSale": 55381,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358591,
+            "specId": "ca260f19938ae21520815e749791198f",
+            "amountOnSale": 55381,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358591,
+            "specId": "ca260f19938ae21520815e749791198f",
+            "amountOnSale": 55381,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "黑色㊖㊎175/XL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358592,
+            "specId": "250ff050d0fcb93035092eff0ada9453",
+            "amountOnSale": 55460,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358592,
+            "specId": "250ff050d0fcb93035092eff0ada9453",
+            "amountOnSale": 55460,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358592,
+            "specId": "250ff050d0fcb93035092eff0ada9453",
+            "amountOnSale": 55460,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "黑色㊖㊎180/XXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358593,
+            "specId": "8cbc6ffafcd983726e73c923866622e6",
+            "amountOnSale": 55482,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358593,
+            "specId": "8cbc6ffafcd983726e73c923866622e6",
+            "amountOnSale": 55482,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358593,
+            "specId": "8cbc6ffafcd983726e73c923866622e6",
+            "amountOnSale": 55482,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "黑色㊖㊎185/XXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358594,
+            "specId": "22c1c27deafcf69c167e79f32a041544",
+            "amountOnSale": 55510,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358594,
+            "specId": "22c1c27deafcf69c167e79f32a041544",
+            "amountOnSale": 55510,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358594,
+            "specId": "22c1c27deafcf69c167e79f32a041544",
+            "amountOnSale": 55510,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "黑色㊖㊎190/XXXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358595,
+            "specId": "7d14ca3ee8e1c16631f83ec6668aa320",
+            "amountOnSale": 55507,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358595,
+            "specId": "7d14ca3ee8e1c16631f83ec6668aa320",
+            "amountOnSale": 55507,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358595,
+            "specId": "7d14ca3ee8e1c16631f83ec6668aa320",
+            "amountOnSale": 55507,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "酒红色㊖㊎165/M",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358596,
+            "specId": "fabd7822d5e7b1efce92e07e06722cb8",
+            "amountOnSale": 55540,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358596,
+            "specId": "fabd7822d5e7b1efce92e07e06722cb8",
+            "amountOnSale": 55540,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358596,
+            "specId": "fabd7822d5e7b1efce92e07e06722cb8",
+            "amountOnSale": 55540,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "酒红色㊖㊎170/L",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358597,
+            "specId": "59f3f65c4267836a6d9fb2380e854a1e",
+            "amountOnSale": 55538,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358597,
+            "specId": "59f3f65c4267836a6d9fb2380e854a1e",
+            "amountOnSale": 55538,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358597,
+            "specId": "59f3f65c4267836a6d9fb2380e854a1e",
+            "amountOnSale": 55538,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "酒红色㊖㊎175/XL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358598,
+            "specId": "295d29173cd17474fc664dbf9c8e8fe1",
+            "amountOnSale": 55537,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358598,
+            "specId": "295d29173cd17474fc664dbf9c8e8fe1",
+            "amountOnSale": 55537,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358598,
+            "specId": "295d29173cd17474fc664dbf9c8e8fe1",
+            "amountOnSale": 55537,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "酒红色㊖㊎180/XXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358599,
+            "specId": "f7209ab12b9b8aa45f4a9d0770da95a4",
+            "amountOnSale": 55541,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358599,
+            "specId": "f7209ab12b9b8aa45f4a9d0770da95a4",
+            "amountOnSale": 55541,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358599,
+            "specId": "f7209ab12b9b8aa45f4a9d0770da95a4",
+            "amountOnSale": 55541,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "酒红色㊖㊎185/XXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358600,
+            "specId": "94669e30f42164ea84c859c910d671bd",
+            "amountOnSale": 55530,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358600,
+            "specId": "94669e30f42164ea84c859c910d671bd",
+            "amountOnSale": 55530,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358600,
+            "specId": "94669e30f42164ea84c859c910d671bd",
+            "amountOnSale": 55530,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "酒红色㊖㊎190/XXXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358601,
+            "specId": "5ef212eef43158605f4c746c0c189fd4",
+            "amountOnSale": 55539,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358601,
+            "specId": "5ef212eef43158605f4c746c0c189fd4",
+            "amountOnSale": 55539,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358601,
+            "specId": "5ef212eef43158605f4c746c0c189fd4",
+            "amountOnSale": 55539,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "藏青色㊖㊎165/M",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358602,
+            "specId": "977014c2ace2b6e4f351f95d74c1766a",
+            "amountOnSale": 55532,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358602,
+            "specId": "977014c2ace2b6e4f351f95d74c1766a",
+            "amountOnSale": 55532,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358602,
+            "specId": "977014c2ace2b6e4f351f95d74c1766a",
+            "amountOnSale": 55532,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "藏青色㊖㊎170/L",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358603,
+            "specId": "9fafe473c0c5982fae21e13213f8d6b2",
+            "amountOnSale": 55540,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358603,
+            "specId": "9fafe473c0c5982fae21e13213f8d6b2",
+            "amountOnSale": 55540,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358603,
+            "specId": "9fafe473c0c5982fae21e13213f8d6b2",
+            "amountOnSale": 55540,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "藏青色㊖㊎175/XL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358604,
+            "specId": "09d86b04446c5578e2c07827f65c73fa",
+            "amountOnSale": 55540,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358604,
+            "specId": "09d86b04446c5578e2c07827f65c73fa",
+            "amountOnSale": 55540,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358604,
+            "specId": "09d86b04446c5578e2c07827f65c73fa",
+            "amountOnSale": 55540,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "藏青色㊖㊎180/XXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358605,
+            "specId": "9cd14266af0bd29a9a191db64861b982",
+            "amountOnSale": 55540,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358605,
+            "specId": "9cd14266af0bd29a9a191db64861b982",
+            "amountOnSale": 55540,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358605,
+            "specId": "9cd14266af0bd29a9a191db64861b982",
+            "amountOnSale": 55540,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "藏青色㊖㊎185/XXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358606,
+            "specId": "544403b678fafa108862eb0dfc3c9114",
+            "amountOnSale": 55527,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358606,
+            "specId": "544403b678fafa108862eb0dfc3c9114",
+            "amountOnSale": 55527,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358606,
+            "specId": "544403b678fafa108862eb0dfc3c9114",
+            "amountOnSale": 55527,
+            "startQuantity": 50
+          }
+        ]
+      },
+      {
+        "keyT": "藏青色㊖㊎190/XXXXL",
+        "valueT": [
+          {
+            "price": "29.5",
+            "skuId": 5051158358607,
+            "specId": "6eea6d23d3b3f1ca58fd74a5a08a9882",
+            "amountOnSale": 55541,
+            "startQuantity": 1
+          },
+          {
+            "price": "29.0",
+            "skuId": 5051158358607,
+            "specId": "6eea6d23d3b3f1ca58fd74a5a08a9882",
+            "amountOnSale": 55541,
+            "startQuantity": 10
+          },
+          {
+            "price": "28.0",
+            "skuId": 5051158358607,
+            "specId": "6eea6d23d3b3f1ca58fd74a5a08a9882",
+            "amountOnSale": 55541,
+            "startQuantity": 50
+          }
+        ]
+      }
+    ],
+    "priceRangesType": "One",
+    "minOrderQuantity": 1
+  },
+  "fromPlatform": "1688"
+}

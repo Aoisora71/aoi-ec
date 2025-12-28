@@ -1,0 +1,750 @@
+{
+  "itemNumber": "ITEM-0001",
+  "title": "アメリカンレトロチェック柄長袖シャツメンズ春新作ラペルポケットシャツ質感ルーズカップルジャケット女性用",
+  "tagline": "春のおしゃれを楽しむ！ <br>  アメリカンレトロチェック柄シャツ登場！",
+  "productDescription": {
+    "pc": "アメリカンレトロチェック柄長袖シャツは、春にぴったりのアイテムです。<br> ポリエステルとコットンの混合素材で、柔らかく着心地も抜群。<br>ストリートトレンドを意識したデザインで、若者にぴったり。 <br> ラペル付きのカーディガンスタイルで、ポケットの装飾もおしゃれ。カジュアルなレジャーシーンやデートにも最適です。<br> サイズ展開も豊富で、男女ともに楽しめる一着です。",
+    "sp": "春の新作、アメリカンレトロチェック柄長袖シャツ登場！ <br> 柔らかいポリエステルとコットンの生地で、ルーズなシルエットが魅力。<br> カジュアルなデザインはデートやレジャーにぴったり。<br> サイズはMからXXXLまであり、色も黒、赤、青の3色展開。<br> カップルでのリンクコーデにもおすすめです！"
+  },
+  "salesDescription": "この春、新作のアメリカンレトロチェック柄長袖シャツで、あなたのスタイルをアップデート！ <br> ルーズなシルエットとラペルポケットが特徴で、カジュアルながらもおしゃれな印象を与えます。<br> 色は黒、赤、青の3色展開で、MからXXXLまでのサイズを用意。カップルでのリンクコーデにも最適です！",
+  "itemType": "NORMAL",
+  "genreId": "201198",
+  "tags": [
+    
+  ],
+  "hideItem": true,
+  "unlimitedInventoryFlag": false,
+  "images": [
+    {
+      "type": "CABINET",
+      "location": "/10004/10004_1_jpg.jpg",
+      "alt": "メイン画像 高輝度LEDバイクライト"
+    },
+    {
+      "type": "CABINET",
+      "location": "/10004/10004_2_jpg.jpg",
+      "alt": "メイン画像 高輝度LEDバイクライト"
+    },
+    {
+      "type": "CABINET",
+      "location": "/10004/10004_3_jpg.jpg",
+      "alt": "メイン画像 高輝度LEDバイクライト"
+    },
+    {
+      "type": "CABINET",
+      "location": "/10004/10004_4_jpg.jpg",
+      "alt": "メイン画像 高輝度LEDバイクライト"
+    },
+    {
+      "type": "CABINET",
+      "location": "/10004/10004_5_jpg.jpg",
+      "alt": "メイン画像 高輝度LEDバイクライト"
+    }],
+  "features": {
+    "searchVisibility": "ALWAYS_HIDDEN",
+    "displayNormalCartButton": false,
+    "displaySubscriptionCartButton": false,
+    "inventoryDisplay": "DISPLAY_ABSOLUTE_STOCK_COUNT",
+    "shopContact": true,
+    "review": "SHOP_SETTING",
+    "displayManufacturerContents": false
+  },
+  "payment": {
+    "taxIncluded": true,
+    "taxRate": "0.1",
+    "cashOnDeliveryFeeIncluded": false
+  },
+  "layout": {
+    "itemLayoutId": 1,
+    "navigationId": 0,
+    "layoutSequenceId": 0,
+    "smallDescriptionId": 0,
+    "largeDescriptionId": 0,
+    "showcaseId": 0
+  },
+  "variantSelectors": [
+    {
+      "key": "color",
+      "displayName": "カラー",
+      "values": [
+        {
+          "displayValue": "ブラック"
+        },
+        {
+          "displayValue": "レッド"
+        },
+        {
+          "displayValue": "ブルー"
+        }
+      ]
+    },
+    {
+      "key": "size",
+      "displayName": "サイズ",
+      "values": [
+        {
+          "displayValue": "M"
+        },
+        {
+          "displayValue": "L"
+        },
+        {
+          "displayValue": "XL"
+        },
+        {
+          "displayValue": "XXL"
+        },
+        {
+          "displayValue": "XXXL"
+        }
+      ]
+    }
+  ],
+  "variants": {
+    "5529195297602": {
+      "selectorValues": {
+        "color": "ブラック",
+        "size": "M"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297603": {
+      "selectorValues": {
+        "color": "ブラック",
+        "size": "L"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297604": {
+      "selectorValues": {
+        "color": "ブラック",
+        "size": "XL"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297605": {
+      "selectorValues": {
+        "color": "ブラック",
+        "size": "XXL"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297606": {
+      "selectorValues": {
+        "color": "ブラック",
+        "size": "XXXL"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297607": {
+      "selectorValues": {
+        "color": "レッド",
+        "size": "M"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297608": {
+      "selectorValues": {
+        "color": "レッド",
+        "size": "L"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297609": {
+      "selectorValues": {
+        "color": "レッド",
+        "size": "XL"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297610": {
+      "selectorValues": {
+        "color": "レッド",
+        "size": "XXL"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297611": {
+      "selectorValues": {
+        "color": "レッド",
+        "size": "XXXL"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297612": {
+      "selectorValues": {
+        "color": "ブルー",
+        "size": "M"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297613": {
+      "selectorValues": {
+        "color": "ブルー",
+        "size": "L"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297614": {
+      "selectorValues": {
+        "color": "ブルー",
+        "size": "XL"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297615": {
+      "selectorValues": {
+        "color": "ブルー",
+        "size": "XXL"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    },
+    "5529195297616": {
+      "selectorValues": {
+        "color": "ブルー",
+        "size": "XXXL"
+      },
+      "standardPrice": "3000",
+      "articleNumber": {
+        "exemptionReason": 5
+      },
+      "attributes": [
+        {
+          "name": "ブランド名",
+          "values": [
+            "ハン・ルー"
+          ]
+        },
+        {
+          "name": "シリーズ名",
+          "values": [
+            "L3860"
+          ]
+        },
+        {
+          "name": "原産国／製造国",
+          "values": [
+            "1"
+          ]
+        },
+        {
+          "name": "総個数",
+          "values": [
+            "1"
+          ]
+        }
+      ],
+      "shipping": {
+        "postageIncluded": true
+      },
+      "features": {
+        "restockNotification": false,
+        "noshi": false
+      }
+    }
+  }
+}

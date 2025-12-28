@@ -1,0 +1,29 @@
+# Core dependencies
+psycopg2-binary>=2.9.0
+
+# API Server dependencies
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+pydantic>=2.0.0
+python-multipart>=0.0.20
+openpyxl>=3.1.0
+
+# Authentication dependencies
+PyJWT>=2.10.0
+bcrypt>=5.0.0
+
+# Development dependencies
+python-dotenv>=0.19.0
+
+# OpenAI dependencies (required for marketing copy generation)
+openai>=1.0.0
+# DeepL dependencies (required for translation)
+deepl>=1.25.0
+# Image processing api dependencies
+google-genai==1.45.0
+opencv-python==4.12.0.88
+pillow>=8.0,<11.0
+boto3==1.35.54
+requests>=2.32.4,<3.0.0
+urllib3==2.5.0
+pytz>=2023.3
