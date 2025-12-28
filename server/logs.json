@@ -1,23 +1,31 @@
 [
   {
-    "id": "1766902796788_8212",
-    "timestamp": "2025-12-28T15:19:56.788100",
+    "id": "1766921690847_1055",
+    "timestamp": "2025-12-28T20:34:50.847272",
+    "level": "warning",
+    "message": "404 Not Found: GET /ip",
+    "details": "IP: 204.76.203.93, User-Agent: ProxyPool-Scanner/2.0, Referer: none",
+    "source": "api"
+  },
+  {
+    "id": "1766920966743_9529",
+    "timestamp": "2025-12-28T20:22:46.743656",
     "level": "info",
     "message": "Automatic refresh disabled",
     "details": "Auto refresh is turned off in settings",
     "source": "auto-refresh"
   },
   {
-    "id": "1766902796786_9804",
-    "timestamp": "2025-12-28T15:19:56.787013",
+    "id": "1766920966742_5042",
+    "timestamp": "2025-12-28T20:22:46.742623",
     "level": "info",
     "message": "Licel Store API server started",
     "details": "Server initialization completed",
     "source": "startup"
   },
   {
-    "id": "1766902795748_3080",
-    "timestamp": "2025-12-28T15:19:55.749017",
+    "id": "1766920965274_8337",
+    "timestamp": "2025-12-28T20:22:45.274932",
     "level": "warning",
     "message": "Connection pool initialization failed",
     "details": "Server will continue but may have reduced performance. Ensure PostgreSQL is running.",

@@ -1206,6 +1206,24 @@ class ApiService {
       body: JSON.stringify(data),
     }, { throwOnError: false })
   }
+
+  // Translation settings
+  async getTranslationSettings(): Promise<{ success: boolean; data?: any; error?: string }> {
+    return this.request('/api/settings/translation', {}, { throwOnError: false })
+  }
+
+  async saveTranslationSettings(settings: any): Promise<{ success: boolean; message?: string; error?: string }> {
+    return this.request('/api/settings/translation', {
+      method: 'POST',
+      body: JSON.stringify(settings),
+    }, { throwOnError: false })
+  }
+
+  async reloadTranslationConfig(): Promise<{ success: boolean; message?: string; error?: string }> {
+    return this.request('/api/settings/translation/reload', {
+      method: 'POST',
+    }, { throwOnError: false })
+  }
 }
 
 export const apiService = new ApiService()

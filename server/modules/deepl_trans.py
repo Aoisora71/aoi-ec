@@ -29,6 +29,8 @@ import re
 import string
 import time
 import unicodedata
+import json
+import pathlib
 from typing import Any, Dict, List, Optional, Set, Tuple
 
 # =============================================================================
@@ -52,47 +54,260 @@ logger = logging.getLogger(__name__)
 
 
 # =============================================================================
+# CONFIGURATION LOADING
+# =============================================================================
+
+def _get_config_path() -> pathlib.Path:
+    """Get path to translation config JSON file."""
+    module_dir = pathlib.Path(__file__).resolve().parent
+    project_root = module_dir.parent
+    config_path = project_root / "translation_config.json"
+    return config_path
+
+
+def _load_translation_config() -> Dict[str, Any]:
+    """Load translation configuration from JSON file."""
+    config_path = _get_config_path()
+    
+    if not config_path.exists():
+        logger.warning(f"Translation config file not found at {config_path}, using defaults")
+        return {}
+    
+    try:
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        logger.debug(f"Translation config loaded from {config_path}")
+        return config
+    except Exception as e:
+        logger.error(f"Failed to load translation config: {e}, using defaults")
+        return {}
+
+
+# Load configuration
+_translation_config = _load_translation_config()
+
+
+def reload_translation_config() -> bool:
+    """Reload translation configuration from JSON file."""
+    global _translation_config, TRANSLATION_MAP, PATTERN_DICTIONARY, REMOVAL_PATTERNS
+    global CHINESE_BRACKETS, CHINESE_INDICATORS, SIZE_VALUES
+    global CJK_RANGE, CJK_EXT_A_RANGE, HIRAGANA_RANGE, KATAKANA_RANGE, PRIVATE_USE_RANGE
+    global _SORTED_MAP
+    
+    try:
+        _translation_config = _load_translation_config()
+        
+        # Reload all configuration values
+        _reload_config_values()
+        
+        logger.info("Translation configuration reloaded successfully")
+        return True
+    except Exception as e:
+        logger.error(f"Failed to reload translation config: {e}")
+        return False
+
+
+def _reload_config_values():
+    """Reload all configuration values from _translation_config."""
+    global TRANSLATION_MAP, PATTERN_DICTIONARY, REMOVAL_PATTERNS
+    global CHINESE_BRACKETS, CHINESE_INDICATORS, SIZE_VALUES
+    global CJK_RANGE, CJK_EXT_A_RANGE, HIRAGANA_RANGE, KATAKANA_RANGE, PRIVATE_USE_RANGE
+    global _SORTED_MAP
+    
+    # Initialize dictionaries if they don't exist yet
+    if 'TRANSLATION_MAP' not in globals():
+        TRANSLATION_MAP = {}
+    if 'PATTERN_DICTIONARY' not in globals():
+        PATTERN_DICTIONARY = {}
+    if 'REMOVAL_PATTERNS' not in globals():
+        REMOVAL_PATTERNS = {}
+    
+    # Load translation map
+    TRANSLATION_MAP.clear()
+    if "translation_map" in _translation_config:
+        TRANSLATION_MAP.update(_translation_config["translation_map"])
+    
+    # Load pattern dictionary
+    PATTERN_DICTIONARY.clear()
+    if "pattern_dictionary" in _translation_config:
+        PATTERN_DICTIONARY.update(_translation_config["pattern_dictionary"])
+    
+    # Load removal patterns
+    REMOVAL_PATTERNS.clear()
+    if "removal_patterns" in _translation_config:
+        REMOVAL_PATTERNS.update(_translation_config["removal_patterns"])
+    
+    # Load Chinese brackets
+    if "chinese_brackets" in _translation_config:
+        global CHINESE_BRACKETS
+        CHINESE_BRACKETS = tuple(_translation_config["chinese_brackets"])
+    
+    # Load Chinese indicators
+    if "chinese_indicators" in _translation_config:
+        global CHINESE_INDICATORS
+        CHINESE_INDICATORS = set(_translation_config["chinese_indicators"])
+    
+    # Load size values
+    if "size_values" in _translation_config:
+        global SIZE_VALUES
+        SIZE_VALUES = set(_translation_config["size_values"])
+    
+    # Load Unicode ranges
+    if "unicode_ranges" in _translation_config:
+        ranges = _translation_config["unicode_ranges"]
+        global CJK_RANGE, CJK_EXT_A_RANGE, HIRAGANA_RANGE, KATAKANA_RANGE, PRIVATE_USE_RANGE
+        CJK_RANGE = tuple(ranges.get("cjk_range", [0x4E00, 0x9FFF]))
+        CJK_EXT_A_RANGE = tuple(ranges.get("cjk_ext_a_range", [0x3400, 0x4DBF]))
+        HIRAGANA_RANGE = tuple(ranges.get("hiragana_range", [0x3040, 0x309F]))
+        KATAKANA_RANGE = tuple(ranges.get("katakana_range", [0x30A0, 0x30FF]))
+        PRIVATE_USE_RANGE = tuple(ranges.get("private_use_range", [0xE000, 0xF8FF]))
+    
+    # Rebuild sorted map
+    if 'TRANSLATION_MAP' in globals() and TRANSLATION_MAP:
+        global _SORTED_MAP
+        _SORTED_MAP = sorted(
+            TRANSLATION_MAP.items(),
+            key=lambda x: len(x[0]),
+            reverse=True
+        )
+
+
+# =============================================================================
 # CONFIGURATION
 # =============================================================================
 
 class Config:
     """Centralized configuration for DeepL translation module."""
     
-    API_KEY: Optional[str] = os.getenv("DEEPL_API_KEY")
-    SERVER_URL: Optional[str] = os.getenv("DEEPL_SERVER_URL")
-    RATE_LIMIT_DELAY: float = float(os.getenv("DEEPL_RATE_LIMIT_DELAY", "0.1"))
-    MAX_RETRIES: int = int(os.getenv("DEEPL_MAX_RETRIES", "3"))
-    RETRY_DELAY: float = float(os.getenv("DEEPL_RETRY_DELAY", "1.0"))
-    CACHE_MAX_SIZE: int = 10000
-    MAX_BYTES: int = 32  # Rakuten API limit for variant selectors
+    @staticmethod
+    def _get_config() -> Dict[str, Any]:
+        """Get config section from translation config."""
+        return _translation_config.get("config", {})
+    
+    @staticmethod
+    def get_API_KEY() -> Optional[str]:
+        config = Config._get_config()
+        return config.get("api_key") or os.getenv("DEEPL_API_KEY")
+    
+    @staticmethod
+    def get_SERVER_URL() -> Optional[str]:
+        config = Config._get_config()
+        return config.get("server_url") or os.getenv("DEEPL_SERVER_URL")
+    
+    @staticmethod
+    def get_RATE_LIMIT_DELAY() -> float:
+        config = Config._get_config()
+        return float(config.get("rate_limit_delay", os.getenv("DEEPL_RATE_LIMIT_DELAY", "0.1")))
+    
+    @staticmethod
+    def get_MAX_RETRIES() -> int:
+        config = Config._get_config()
+        return int(config.get("max_retries", os.getenv("DEEPL_MAX_RETRIES", "3")))
+    
+    @staticmethod
+    def get_RETRY_DELAY() -> float:
+        config = Config._get_config()
+        return float(config.get("retry_delay", os.getenv("DEEPL_RETRY_DELAY", "1.0")))
+    
+    @staticmethod
+    def get_CACHE_MAX_SIZE() -> int:
+        config = Config._get_config()
+        return int(config.get("cache_max_size", 10000))
+    
+    @staticmethod
+    def get_MAX_BYTES() -> int:
+        config = Config._get_config()
+        return int(config.get("max_bytes", 32))
+    
+    # Properties for backward compatibility
+    @property
+    def API_KEY(self) -> Optional[str]:
+        return Config.get_API_KEY()
+    
+    @property
+    def SERVER_URL(self) -> Optional[str]:
+        return Config.get_SERVER_URL()
+    
+    @property
+    def RATE_LIMIT_DELAY(self) -> float:
+        return Config.get_RATE_LIMIT_DELAY()
+    
+    @property
+    def MAX_RETRIES(self) -> int:
+        return Config.get_MAX_RETRIES()
+    
+    @property
+    def RETRY_DELAY(self) -> float:
+        return Config.get_RETRY_DELAY()
+    
+    @property
+    def CACHE_MAX_SIZE(self) -> int:
+        return Config.get_CACHE_MAX_SIZE()
+    
+    @property
+    def MAX_BYTES(self) -> int:
+        return Config.get_MAX_BYTES()
+
+
+# Create Config instance for backward compatibility
+Config = Config()
 
 
 # =============================================================================
 # UNICODE CONSTANTS
 # =============================================================================
 
-# CJK Unicode ranges
-CJK_RANGE = (0x4E00, 0x9FFF)
-CJK_EXT_A_RANGE = (0x3400, 0x4DBF)
-HIRAGANA_RANGE = (0x3040, 0x309F)
-KATAKANA_RANGE = (0x30A0, 0x30FF)
-PRIVATE_USE_RANGE = (0xE000, 0xF8FF)
+# Initialize from config with defaults
+def _init_unicode_ranges():
+    """Initialize Unicode ranges from config."""
+    if "unicode_ranges" in _translation_config:
+        ranges = _translation_config["unicode_ranges"]
+        return (
+            tuple(ranges.get("cjk_range", [0x4E00, 0x9FFF])),
+            tuple(ranges.get("cjk_ext_a_range", [0x3400, 0x4DBF])),
+            tuple(ranges.get("hiragana_range", [0x3040, 0x309F])),
+            tuple(ranges.get("katakana_range", [0x30A0, 0x30FF])),
+            tuple(ranges.get("private_use_range", [0xE000, 0xF8FF]))
+        )
+    return (
+        (0x4E00, 0x9FFF),
+        (0x3400, 0x4DBF),
+        (0x3040, 0x309F),
+        (0x30A0, 0x30FF),
+        (0xE000, 0xF8FF)
+    )
+
+CJK_RANGE, CJK_EXT_A_RANGE, HIRAGANA_RANGE, KATAKANA_RANGE, PRIVATE_USE_RANGE = _init_unicode_ranges()
 
 # Characters rejected by Rakuten API
-CHINESE_BRACKETS: Tuple[str, ...] = ('【', '】', '「', '」', '『', '』', '〔', '〕', '〖', '〗')
+def _init_chinese_brackets() -> Tuple[str, ...]:
+    """Initialize Chinese brackets from config."""
+    if "chinese_brackets" in _translation_config:
+        return tuple(_translation_config["chinese_brackets"])
+    # Return empty tuple - all values should come from JSON config file
+    return tuple()
+
+CHINESE_BRACKETS: Tuple[str, ...] = _init_chinese_brackets()
 
 # Chinese character indicators for language detection
-CHINESE_INDICATORS: Set[str] = {
-    '黑', '白', '红', '绿', '蓝', '黄', '紫', '灰', '粉', '橙', '棕', '米',
-    '玫', '桃', '桔', '浅', '深', '雾', '纯', '加', '绒', '厚', '的', '了',
-    '是', '在', '有', '和', '就', '不', '人', '都'
-}
+def _init_chinese_indicators() -> Set[str]:
+    """Initialize Chinese indicators from config."""
+    if "chinese_indicators" in _translation_config:
+        return set(_translation_config["chinese_indicators"])
+    # Return empty set - all values should come from JSON config file
+    return set()
+
+CHINESE_INDICATORS: Set[str] = _init_chinese_indicators()
 
 # Standard size values
-SIZE_VALUES: Set[str] = {
-    'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'XXXXL',
-    '2XL', '3XL', '4XL', '5XL', '6XL', '7XL', '8XL', '9XL',
-}
+def _init_size_values() -> Set[str]:
+    """Initialize size values from config."""
+    if "size_values" in _translation_config:
+        return set(_translation_config["size_values"])
+    # Return empty set - all values should come from JSON config file
+    return set()
+
+SIZE_VALUES: Set[str] = _init_size_values()
 
 
 # =============================================================================
@@ -101,69 +316,12 @@ SIZE_VALUES: Set[str] = {
 
 # Character pattern dictionary for word boundary detection and text processing
 # This dictionary can be continuously extended with new patterns as needed
-PATTERN_DICTIONARY: Dict[str, List[str]] = {
-    # --- NECK STYLES ---
-    'neck_styles': [
-        'ネック', 'ハイネック', 'ラウンドネック', 'ミドルネック', 'ローカット',
-        'Vネック', 'Uネック', 'スタンドカラー', 'ラペルカラー', 'ノーカラー',
-    ],
-    
-    # --- COLORS ---
-    'colors': [
-        'ホワイト', 'ブラック', 'グレー', 'レッド', 'ブルー', 'グリーン',
-        'イエロー', 'ピンク', 'パープル', 'オレンジ', 'ブラウン', 'ベージュ',
-        'カーキ', 'シルバー', 'ゴールド', 'ダーク', 'ライト', 'ミディアム',
-        'ダークグレー', 'ライトグレー', 'ダークグリーン', 'ライトグリーン',
-        'ダークブルー', 'ライトブルー', 'ワインレッド', 'ローズ', 'ネイビー',
-        'スカイブルー', 'ロイヤルブルー', 'ミストブルー',
-    ],
-    
-    # --- SIZES ---
-    'sizes': [
-        'XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL', 'XXXXL',
-        'スモール', 'ミディアム', 'ラージ', 'エクストラ', 'フリーサイズ',
-        'ペティット', 'プラスサイズ', 'レギュラーサイズ',
-        # Chinese size terms
-        '均码', '标准码', '加大码', '加小码', '大码', '小码', '中码',
-    ],
-    
-    # --- MATERIALS ---
-    'materials': [
-        'コットン', 'ポリエステル', 'ナイロン', 'ウール', 'カシミア',
-        'シルク', 'リネン', 'レザー', '合成レザー', '人工皮革',
-        'ストレッチ', 'エラスティック',
-    ],
-    
-    # --- STYLES ---
-    'styles': [
-        'カラー', 'スタイル', 'タイプ', 'カテゴリー', 'ブランド', 'モデル',
-        'シリーズ', 'レディース', 'メンズ', 'キッズ', 'アダルト',
-        'ルーズ', 'スリム', 'タイト', 'フィット', 'ショート', 'ロング',
-        'ミディアム', 'ハイウエスト', 'ミッドライズ', 'ローライズ',
-    ],
-    
-    # --- PRODUCT TYPES ---
-    'product_types': [
-        'スウェット', 'アウター', 'トップス', 'ボトムス', 'パンツ', 'スカート',
-        'ワンピース', 'シャツ', 'Tシャツ', 'セーター', 'コート', 'ジャケット',
-        'トレンチコート', 'ダウンジャケット', 'ジーンズ', 'カジュアルパンツ',
-        'スポーツパンツ', 'ショートパンツ', 'ロングパンツ', 'レギンス',
-        '靴下', '靴', 'スニーカー', 'ハイヒール', 'フラットシューズ', 'サンダル',
-        'ブーツ',
-    ],
-    
-    # --- MODIFIERS ---
-    'modifiers': [
-        '加', '厚', '薄', '軽', '重', '大', '小', '長', '短', '広', '狭',
-        '高', '低', '深', '浅', '新', '旧', '多', '少', '全', '半',
-    ],
-    
-    # --- COMMON SUFFIXES/PREFIXES ---
-    'common_terms': [
-        'カラー', 'サイズ', 'タイプ', 'スタイル', 'モデル', 'シリーズ',
-        'エクストラ', 'スペシャル', 'プレミアム', 'デラックス', 'ベーシック',
-    ],
-}
+def _init_pattern_dictionary() -> Dict[str, List[str]]:
+    """Initialize pattern dictionary from config."""
+    if "pattern_dictionary" in _translation_config:
+        return dict(_translation_config["pattern_dictionary"])
+    # Return empty dict - all values should come from JSON config file
+    return {}
 
 
 def get_patterns(category: Optional[str] = None) -> List[str]:
@@ -254,255 +412,14 @@ def get_all_categories() -> List[str]:
 
 # Comprehensive Chinese-to-Japanese translation map
 # Note: Order matters for dict iteration. Longer terms should match first via _SORTED_MAP
-TRANSLATION_MAP: Dict[str, str] = {
-    # --- COLORS: Chinese to Japanese (Basic) ---
-    '黑色': 'ブラック',
-    '黑': 'ブラック',
-    '白色': 'ホワイト',
-    '白': 'ホワイト',
-    '红色': 'レッド',
-    '红': 'レッド',
-    '绿色': 'グリーン',
-    '绿': 'グリーン',
-    '蓝色': 'ブルー',
-    '蓝': 'ブルー',
-    '黄色': 'イエロー',
-    '黄': 'イエロー',
-    '紫色': 'パープル',
-    '紫': 'パープル',
-    '灰色': 'グレー',
-    '灰': 'グレー',
-    '粉色': 'ピンク',
-    '粉': 'ピンク',
-    '橙色': 'オレンジ',
-    '橙': 'オレンジ',
-    '棕色': 'ブラウン',
-    '棕': 'ブラウン',
-    '银色': 'シルバー',
-    '银': 'シルバー',
-    '金色': 'ゴールド',
-    '金': 'ゴールド',
-    '米白色': 'ベージュ',
-    '米色': 'ベージュ',
-    '米': 'ベージュ',
-    
-    # --- COLORS: Chinese to Japanese (Compound) ---
-    '浅灰色': 'ライトグレー',
-    '浅灰': 'ライトグレー',
-    '深灰色': 'ダークグレー',
-    '深灰': 'ダークグレー',
-    '浅绿色': 'ライトグリーン',
-    '浅绿': 'ライトグリーン',
-    '浅紫色': 'ライトパープル',
-    '浅紫': 'ライトパープル',
-    '雾蓝色': 'ミストブルー',
-    '雾蓝': 'ミストブルー',
-    '玫红色': 'ローズ',
-    '玫红': 'ローズ',
-    '桃红色': 'ピンク',
-    '桔红色': 'オレンジ',
-    '藏青色': 'ネイビー',
-    '藏青': 'ネイビー',
-    '卡其色': 'カーキ',
-    '卡其': 'カーキ',
-    '咖啡色': 'ブラウン',
-    '咖啡': 'ブラウン',
-    '酒红色': 'ワインレッド',
-    '酒红': 'ワインレッド',
-    '墨绿色': 'ダークグリーン',
-    '墨绿': 'ダークグリーン',
-    '天蓝色': 'スカイブルー',
-    '天蓝': 'スカイブルー',
-    '宝蓝色': 'ロイヤルブルー',
-    '宝蓝': 'ロイヤルブルー',
-    
-    # --- COLORS: Japanese Kanji to Katakana ---
-    '赤': 'レッド',
-    '赤色': 'レッド',
-    '青': 'ブルー',
-    '青色': 'ブルー',
-    '黒': 'ブラック',
-    '黒色': 'ブラック',
-    '緑': 'グリーン',
-    '緑色': 'グリーン',
-    '銀': 'シルバー',
-    '銀色': 'シルバー',
-    'ピンク色': 'ピンク',
-    'オレンジ色': 'オレンジ',
-    'ブラウン色': 'ブラウン',
-    'ベージュ色': 'ベージュ',
-    'ブラックセット': 'ブラック',
-    
-    # --- SIZES ---
-    '尺码': 'サイズ',
-    '尺寸': 'サイズ',
-    '码数': 'サイズ',
-    '大小': 'サイズ',
-    '大码': '大きいサイズ',
-    '小码': '小さいサイズ',
-    '中码': 'ミディアム',
-    '均码': 'フリーサイズ',
-    '标准码': 'レギュラーサイズ',
-    '加大码': 'プラスサイズ',
-    '加小码': 'ペティット',
-    
-    # --- MATERIALS ---
-    '材质': '素材',
-    '面料': '生地',
-    '纯棉': 'コットン100%',
-    '棉': 'コットン',
-    '涤纶': 'ポリエステル',
-    '尼龙': 'ナイロン',
-    '羊毛': 'ウール',
-    '羊绒': 'カシミア',
-    '丝绸': 'シルク',
-    '麻': 'リネン',
-    '皮革': 'レザー',
-    '合成革': '合成レザー',
-    '人造革': '人工皮革',
-    '弹力': 'ストレッチ',
-    '弹性': 'ストレッチ',
-    
-    # --- STYLES & DESCRIPTORS ---
-    '款式': 'スタイル',
-    '风格': 'スタイル',
-    '类型': 'タイプ',
-    '类别': 'カテゴリー',
-    '品牌': 'ブランド',
-    '规格': '仕様',
-    '型号': 'モデル',
-    '系列': 'シリーズ',
-    '女款': 'レディース',
-    '男款': 'メンズ',
-    '情侣款': 'ペア',
-    '儿童款': 'キッズ',
-    '成人款': 'アダルト',
-    '宽松': 'ルーズ',
-    '修身': 'スリム',
-    '紧身': 'タイト',
-    '合身': 'フィット',
-    '高腰': 'ハイウエスト',
-    '中腰': 'ミッドライズ',
-    '低腰': 'ローライズ',
-    '短款': 'ショート',
-    '长款': 'ロング',
-    '中长款': 'ミディアム',
-    
-    # --- NECK STYLES (for mixed Chinese-Japanese text) ---
-    '高领': 'ハイネック',
-    '圆领': 'ラウンドネック',
-    '中领': 'ミドルネック',
-    '低领': 'ローカット',
-    'V领': 'Vネック',
-    'U领': 'Uネック',
-    '立领': 'スタンドカラー',
-    '翻领': 'ラペルカラー',
-    '无领': 'ノーカラー',
-    
-    # --- SEASONS ---
-    '春秋': '春秋',
-    '春季': '春',
-    '夏季': '夏',
-    '秋季': '秋',
-    '冬季': '冬',
-    '四季': 'オールシーズン',
-    
-    # --- FUNCTIONAL ---
-    '透气': '通気',
-    '防水': '防水',
-    '防風': '防風',
-    '防风': '防風',
-    '防雨': '防雨',
-    '速干': 'ソッカン',
-    '速乾': 'ソッカン',
-    '吸汗': '吸汗',
-    '网格': 'メッシュ',
-    '网': 'メッシュ',
-    '装': 'セット',
-    
-    # --- PRODUCT TERMS ---
-    '卫衣': 'スウェット',
-    '外套': 'アウター',
-    '上衣': 'トップス',
-    '下装': 'ボトムス',
-    '裤子': 'パンツ',
-    '裙子': 'スカート',
-    '连衣裙': 'ワンピース',
-    '衬衫': 'シャツ',
-    'T恤': 'Tシャツ',
-    '毛衣': 'セーター',
-    '大衣': 'コート',
-    '夹克': 'ジャケット',
-    '风衣': 'トレンチコート',
-    '羽绒服': 'ダウンジャケット',
-    '牛仔裤': 'ジーンズ',
-    '休闲裤': 'カジュアルパンツ',
-    '运动裤': 'スポーツパンツ',
-    '短裤': 'ショートパンツ',
-    '长裤': 'ロングパンツ',
-    '打底裤': 'レギンス',
-    '袜子': '靴下',
-    '鞋子': '靴',
-    '运动鞋': 'スニーカー',
-    '高跟鞋': 'ハイヒール',
-    '平底鞋': 'フラットシューズ',
-    '凉鞋': 'サンダル',
-    '靴子': 'ブーツ',
-    
-    # --- COLOR MODIFIERS ---
-    '颜色': 'カラー',
-    '花色': '柄物',
-    '单色': '無地',
-    '多色': 'マルチカラー',
-    '拼色': 'カラーブロック',
-    '渐变色': 'グラデーション',
-    '薰衣草': 'ラベンダー',
-    '雾霾': '',
-    '安克拉': 'ワイン',
-    '花': 'フラワー',
-    '奶ホワイト杏':'ミルキーホワイト',
+def _init_translation_map() -> Dict[str, str]:
+    """Initialize translation map from config."""
+    if "translation_map" in _translation_config:
+        return dict(_translation_config["translation_map"])
+    # Return empty dict - all values should come from JSON config file
+    return {}
 
-    # --- QUANTITIES ---
-    '一件': '1点',
-    '两件': '2点',
-    '三件': '3点',
-    '套': 'セット',
-    '对': 'ペア',
-    '双': '足',
-    '条': '本',
-    '件': '点',
-    
-    # --- QUALITY ---
-    '全新': '新品',
-    '二手': '中古',
-    '正品': '正規品',
-    '原单': '正規品',
-    
-    # --- TERMS TO REMOVE (empty string = remove) ---
-    '热卖推荐': '',
-    '热销推荐': '',
-    '热销款': '',
-    '热卖': '',
-    '热销': '',
-    '推荐': '',
-    '新品': '',
-    '特价': '',
-    '限时': '',
-    '抢购': '',
-    '爆款': '',
-    '畅销': '',
-    '人气': '',
-    '加绒': '',
-    '加厚': '',
-    '加棉': '',
-    '保暖': '',
-    '收腹': '',
-    '显瘦': '',
-    '显高': '',
-    '显白': '',
-    '纯色': '',
-    "军": '',
-}
+TRANSLATION_MAP: Dict[str, str] = _init_translation_map()
 
 
 # =============================================================================
@@ -511,56 +428,14 @@ TRANSLATION_MAP: Dict[str, str] = {
 
 # Dictionary of patterns to remove before translation
 # This dictionary can be continuously extended with new removal patterns
-REMOVAL_PATTERNS: Dict[str, List[str]] = {
-    # --- SYMBOLS AND PUNCTUATION ---
-    'symbols': [
-        '-',  # Hyphen
-        '—',  # Em dash
-        '–',  # En dash
-        '・',  # Middle dot
-        '、',  # Chinese comma
-        '，',  # Chinese comma variant
-    ],
-    
-    # --- BRACKETS AND PARENTHESES (with content) ---
-    'brackets': [
-        '【高品質】', '【高品质】', '【高品質', '【高品质',
-        '【', '】', '「', '」', '『', '』', '〔', '〕', '〖', '〗',
-        '[高品質]', '[高品质]', '[高品質', '[高品质',
-        '（高品質）', '（高品质）', '（高品質', '（高品质',
-        '(高品質)', '(高品质)', '(高品質', '(高品质',
-    ],
-    
-    # --- QUALITY TERMS ---
-    'quality_terms': [
-        '高品質', '高品质', '高品質', '高品质',
-        '高品', '高品', '高品', '高品',
-        '品質', '品质', '品質', '品质',
-        '优质', '優質', '优质', '優質',
-        '精品', '精品', '精品', '精品',
-        '正品', '正品', '正品', '正品',
-        '新品', '新品', '新品', '新品',
-    ],
-    
-    # --- PRODUCT CODES AND PREFIXES ---
-    'product_codes': [
-        'K19-', 'K19', 'K-19', 'K_19',
-        # Pattern: Letter(s) followed by numbers and dash
-        # Will be handled by regex in removal function
-    ],
-    
-    # --- PROMOTIONAL TERMS ---
-    'promotional_terms': [
-        '热卖推荐', '热销推荐', '热销款', '热卖', '热销',
-        '推荐', '特价', '限时', '抢购', '爆款', '畅销', '人气',
-        '加绒', '加厚', '加棉', '保暖', '收腹', '显瘦', '显高', '显白', '纯色',
-    ],
-    
-    # --- COMMON SUFFIXES ---
-    'common_suffixes': [
-        '款', '型', '式', '版', '色', '号', '码',
-    ],
-}
+def _init_removal_patterns() -> Dict[str, List[str]]:
+    """Initialize removal patterns from config."""
+    if "removal_patterns" in _translation_config:
+        return dict(_translation_config["removal_patterns"])
+    # Return empty dict - all values should come from JSON config file
+    return {}
+
+REMOVAL_PATTERNS: Dict[str, List[str]] = _init_removal_patterns()
 
 
 def get_removal_patterns(category: Optional[str] = None) -> List[str]:
@@ -650,29 +525,28 @@ def remove_unwanted_patterns(text: str) -> str:
     for bracket in CHINESE_BRACKETS:
         result = result.replace(bracket, '')
     
-    # Remove symbols (sorted by length, longest first to avoid partial matches)
-    symbols = get_removal_patterns('symbols')
-    symbols = sorted(symbols, key=len, reverse=True)
-    for symbol in symbols:
-        result = result.replace(symbol, ' ')
-    
-    # Remove quality terms
-    quality_terms = get_removal_patterns('quality_terms')
-    quality_terms = sorted(quality_terms, key=len, reverse=True)
-    for term in quality_terms:
-        result = result.replace(term, '')
-    
-    # Remove promotional terms
-    promotional_terms = get_removal_patterns('promotional_terms')
-    promotional_terms = sorted(promotional_terms, key=len, reverse=True)
-    for term in promotional_terms:
-        result = result.replace(term, '')
-    
-    # Remove common suffixes (only at the end)
-    common_suffixes = get_removal_patterns('common_suffixes')
-    for suffix in common_suffixes:
-        if result.endswith(suffix):
-            result = result[:-len(suffix)]
+    # Dynamically process all removal pattern categories from config
+    # This allows custom categories to be added through the UI
+    for category_name, patterns in REMOVAL_PATTERNS.items():
+        if not patterns:
+            continue
+        
+        # Sort by length (longest first) to avoid partial matches
+        sorted_patterns = sorted(patterns, key=len, reverse=True)
+        
+        # Special handling for 'common_suffixes' - only remove at the end
+        if category_name == 'common_suffixes':
+            for suffix in sorted_patterns:
+                if result.endswith(suffix):
+                    result = result[:-len(suffix)]
+        # Special handling for 'symbols' - replace with space
+        elif category_name == 'symbols':
+            for symbol in sorted_patterns:
+                result = result.replace(symbol, ' ')
+        # Default: remove the pattern entirely
+        else:
+            for pattern in sorted_patterns:
+                result = result.replace(pattern, '')
     
     # Clean up multiple spaces and trim
     result = re.sub(r'\s+', ' ', result).strip()
@@ -680,11 +554,15 @@ def remove_unwanted_patterns(text: str) -> str:
     return result
 
 # Pre-sorted for longest-first matching (prevents partial replacements)
-_SORTED_MAP: List[Tuple[str, str]] = sorted(
-    TRANSLATION_MAP.items(), 
-    key=lambda x: len(x[0]), 
-    reverse=True
-)
+def _init_sorted_map() -> List[Tuple[str, str]]:
+    """Initialize sorted translation map."""
+    return sorted(
+        TRANSLATION_MAP.items(),
+        key=lambda x: len(x[0]),
+        reverse=True
+    )
+
+_SORTED_MAP: List[Tuple[str, str]] = _init_sorted_map()
 
 # Dictionary for multi-language lookups (used by translate function)
 _DICTIONARY: Dict[str, Dict[str, str]] = {
@@ -1223,13 +1101,15 @@ def _get_translator() -> Any:
     if not DEEPL_AVAILABLE:
         raise RuntimeError("deepl library not installed. Install with: pip install deepl")
     
-    if not Config.API_KEY:
+    api_key = Config.get_API_KEY()
+    if not api_key:
         raise RuntimeError("DEEPL_API_KEY not configured")
     
     if _translator is None:
-        kwargs = {"auth_key": Config.API_KEY}
-        if Config.SERVER_URL:
-            kwargs["server_url"] = Config.SERVER_URL
+        kwargs = {"auth_key": api_key}
+        server_url = Config.get_SERVER_URL()
+        if server_url:
+            kwargs["server_url"] = server_url
         _translator = Translator(**kwargs)
         logger.debug("DeepL translator initialized")
     
@@ -1288,11 +1168,12 @@ def translate(
         return _cache[cache_key]
     
     # Require API key for DeepL calls
-    if not Config.API_KEY:
+    api_key = Config.get_API_KEY()
+    if not api_key:
         logger.warning("DEEPL_API_KEY not configured")
         return None
     
-    time.sleep(Config.RATE_LIMIT_DELAY)
+    time.sleep(Config.get_RATE_LIMIT_DELAY())
     
     try:
         translator = _get_translator()
@@ -1303,21 +1184,22 @@ def translate(
         if tgt == "EN":
             tgt = "EN-US"
         
-        for attempt in range(Config.MAX_RETRIES):
+        max_retries = Config.get_MAX_RETRIES()
+        for attempt in range(max_retries):
             try:
                 result = translator.translate_text(text, source_lang=src, target_lang=tgt)
                 
                 if result and hasattr(result, 'text') and result.text:
                     translated = clean_for_rakuten(result.text.strip())
                     if translated:
-                        if use_cache and len(_cache) < Config.CACHE_MAX_SIZE:
+                        if use_cache and len(_cache) < Config.get_CACHE_MAX_SIZE():
                             _cache[cache_key] = translated
                         return translated
                 return None
                 
             except Exception as e:
                 if "rate limit" in str(e).lower() or "429" in str(getattr(e, 'status_code', '')):
-                    wait = Config.RETRY_DELAY * (2 ** attempt)
+                    wait = Config.get_RETRY_DELAY() * (2 ** attempt)
                     logger.warning(f"Rate limited, waiting {wait}s")
                     time.sleep(wait)
                     continue
@@ -1489,10 +1371,11 @@ def translate_batch(
     if not to_translate:
         return [results.get(i) for i in range(len(valid_texts))]
     
-    if not Config.API_KEY:
+    api_key = Config.get_API_KEY()
+    if not api_key:
         return [None] * len(texts)
     
-    time.sleep(Config.RATE_LIMIT_DELAY)
+    time.sleep(Config.get_RATE_LIMIT_DELAY())
     
     try:
         translator = _get_translator()
@@ -1513,7 +1396,7 @@ def translate_batch(
                     if result and hasattr(result, 'text') and result.text:
                         translated = clean_for_rakuten(result.text.strip())
                         results[orig_idx] = translated
-                        if use_cache and translated and len(_cache) < Config.CACHE_MAX_SIZE:
+                        if use_cache and translated and len(_cache) < Config.get_CACHE_MAX_SIZE():
                             _cache[f"{source_lang}:{target_lang}:{orig_text}"] = translated
                     else:
                         results[orig_idx] = None
@@ -1538,7 +1421,7 @@ def clear_cache() -> None:
 
 def get_cache_stats() -> Dict[str, Any]:
     """Get cache statistics."""
-    return {"size": len(_cache), "max_size": Config.CACHE_MAX_SIZE}
+    return {"size": len(_cache), "max_size": Config.get_CACHE_MAX_SIZE()}
 
 
 def clear_cache_for_text(text: str, source_lang: str = "ZH", target_lang: str = "JA") -> None:
@@ -1734,7 +1617,8 @@ def clean_variant_value(
             logger.debug(f"Translation failed: {e}")
             result = cleaned
     
-    return truncate_to_bytes(result, max_bytes, original)
+    max_bytes_config = Config.get_MAX_BYTES()
+    return truncate_to_bytes(result, max_bytes if max_bytes else max_bytes_config, original)
 
 
 # Backward compatibility aliases
@@ -1913,9 +1797,19 @@ def _is_valid_translation(source: str, translated: str, source_lang: str, target
 # MODULE INITIALIZATION
 # =============================================================================
 
+# Initialize all dictionaries first, then reload from config
+# This ensures dictionaries exist before _reload_config_values() tries to use them
+TRANSLATION_MAP = _init_translation_map()
+PATTERN_DICTIONARY = _init_pattern_dictionary()
+REMOVAL_PATTERNS = _init_removal_patterns()
+_SORTED_MAP = _init_sorted_map()
+
+# Now reload from JSON config file (will override defaults if config exists)
+_reload_config_values()
+
 if not DEEPL_AVAILABLE:
     logger.warning("deepl library not installed. Install with: pip install deepl")
-elif not Config.API_KEY:
+elif not Config.get_API_KEY():
     logger.warning("DEEPL_API_KEY not configured")
 else:
     logger.info("DeepL translation module initialized")
@@ -1949,6 +1843,7 @@ __all__ = [
     # Configuration
     'Config',
     'TRANSLATION_MAP',
+    'reload_translation_config',
     
     # Backward compatibility
     'translate_text',

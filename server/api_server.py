@@ -5517,6 +5517,78 @@ async def trigger_manual_refresh():
         add_log("error", "Manual refresh failed", str(e), "auto-refresh")
         return {"success": False, "error": str(e)}
 
+# =============================================================================
+# Translation Settings API Endpoints
+# =============================================================================
+
+@app.get("/api/settings/translation")
+async def get_translation_settings():
+    """Get translation configuration from JSON file."""
+    try:
+        import pathlib
+        import json
+        
+        module_dir = pathlib.Path(__file__).resolve().parent
+        config_path = module_dir / "translation_config.json"
+        
+        if not config_path.exists():
+            return {"success": False, "error": "Translation config file not found"}
+        
+        with open(config_path, 'r', encoding='utf-8') as f:
+            config = json.load(f)
+        
+        return {"success": True, "data": config}
+    except Exception as e:
+        logger.error(f"Failed to get translation settings: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/settings/translation")
+async def save_translation_settings(settings: Dict[str, Any] = Body(...)):
+    """Save translation configuration to JSON file."""
+    try:
+        import pathlib
+        import json
+        
+        module_dir = pathlib.Path(__file__).resolve().parent
+        config_path = module_dir / "translation_config.json"
+        
+        # Validate structure
+        required_keys = ["config", "translation_map", "pattern_dictionary", "removal_patterns"]
+        if not all(key in settings for key in required_keys):
+            return {"success": False, "error": "Invalid settings structure"}
+        
+        # Save to file
+        with open(config_path, 'w', encoding='utf-8') as f:
+            json.dump(settings, f, ensure_ascii=False, indent=2)
+        
+        # Reload configuration in translation module
+        try:
+            from modules.deepl_trans import reload_translation_config
+            reload_translation_config()
+        except Exception as reload_error:
+            logger.warning(f"Failed to reload translation config: {reload_error}")
+        
+        return {"success": True, "message": "Translation settings saved successfully"}
+    except Exception as e:
+        logger.error(f"Failed to save translation settings: {e}")
+        return {"success": False, "error": str(e)}
+
+
+@app.post("/api/settings/translation/reload")
+async def reload_translation_config():
+    """Reload translation configuration from JSON file."""
+    try:
+        from modules.deepl_trans import reload_translation_config
+        success = reload_translation_config()
+        if success:
+            return {"success": True, "message": "Translation configuration reloaded successfully"}
+        else:
+            return {"success": False, "error": "Failed to reload translation configuration"}
+    except Exception as e:
+        logger.error(f"Failed to reload translation config: {e}")
+        return {"success": False, "error": str(e)}
+
 if __name__ == "__main__":
     import uvicorn
     import os
