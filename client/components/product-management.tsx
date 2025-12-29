@@ -2639,11 +2639,11 @@ export function ProductManagement() {
           </div>
         </Card>
 
-        {/* 登録登録 */}
+        {/* 登録数 */}
         <Card className="p-3 md:p-4 border-border bg-white">
           <div className="flex items-center justify-between">
             <div className="flex-1">
-              <p className="text-xs md:text-sm text-muted-foreground">登録登録</p>
+              <p className="text-xs md:text-sm text-muted-foreground">登録数</p>
               <p className="text-xl md:text-2xl font-bold text-foreground mt-1">{formatNumberJa(productStats.registered + productStats.onsale + productStats.stop)}</p>
             </div>
               <CheckCircle2 className="h-6 w-6 md:h-7 md:w-7 text-green-500" />

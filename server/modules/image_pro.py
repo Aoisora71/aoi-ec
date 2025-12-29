@@ -27,6 +27,9 @@ if not logging.getLogger().handlers:
     logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(name)s - %(levelname)s - %(message)s')
 logger = logging.getLogger(__name__)
 
+# Global flag to track if 429/quota errors occurred (to avoid showing error modals)
+_last_error_was_quota = False
+
 # ============================================================================
 # TEMPORARY FLAG: Image Processing Control
 # ============================================================================
@@ -339,6 +342,33 @@ def execute_gemini(
         error_code = error_dict.get('error', {}).get('status', '') if error_dict else ''
         error_message_text = error_dict.get('error', {}).get('message', '') if error_dict else ''
         
+        # Check for 429/RESOURCE_EXHAUSTED errors (rate limit/quota exceeded)
+        # These should be logged but not raise errors to avoid showing error modals
+        global _last_error_was_quota
+        if (error_code == "RESOURCE_EXHAUSTED" or 
+            "RESOURCE_EXHAUSTED" in error_msg or 
+            "429" in error_msg or
+            "quota" in error_message_lower or
+            "rate limit" in error_message_lower or
+            "rate_limit" in error_message_lower):
+            _last_error_was_quota = True
+            logger.warning("=" * 80)
+            logger.warning("⚠️  GEMINI API RATE LIMIT / QUOTA EXCEEDED")
+            logger.warning("=" * 80)
+            logger.warning("Gemini API quota has been exceeded or rate limit reached.")
+            logger.warning("This is expected when the daily quota is reached.")
+            logger.warning("Processing will continue silently without showing error modals.")
+            logger.warning("")
+            logger.warning("Error details:")
+            if error_dict:
+                logger.warning(f"  Status: {error_code}")
+                logger.warning(f"  Message: {error_message_text}")
+            logger.warning("=" * 80)
+            # Return None silently - don't raise error to avoid showing error modals
+            return None
+        else:
+            _last_error_was_quota = False
+        
         if ("location is not supported" in error_message_lower or 
             "location is not supported" in error_message_text.lower() or
             (error_code == "FAILED_PRECONDITION" and "location" in error_message_text.lower())):
@@ -508,16 +538,34 @@ def process_single_image_with_retry(
             outputs = execute_gemini(image_bytes, prompt_tags=prompt_tags)
             
             if not outputs:
-                error_msg = "Gemini processing failed - no images generated"
-                logger.warning(f"⚠️  {error_msg} (attempt {attempt}/{effective_max_retries})")
-                if attempt < effective_max_retries:
-                    wait_time = retry_delay * attempt
-                    logger.info(f"⏳ Retrying in {wait_time}s... (attempt {attempt}/{effective_max_retries})")
-                    time.sleep(wait_time)
-                    continue
+                # Check if this is a 429/quota error
+                global _last_error_was_quota
+                if _last_error_was_quota:
+                    # For quota/rate limit errors, don't set error message to avoid showing error modals
+                    logger.info(f"⚠️  Quota/rate limit reached - skipping image processing silently (attempt {attempt}/{effective_max_retries})")
+                    if attempt < effective_max_retries:
+                        wait_time = retry_delay * attempt
+                        logger.info(f"⏳ Retrying in {wait_time}s... (attempt {attempt}/{effective_max_retries})")
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        # Don't set error for quota/rate limit issues - just return with status failed
+                        # This prevents error modals from showing
+                        image_result["status"] = "failed"
+                        image_result["error"] = None  # Don't set error message to avoid showing error modals
+                        return image_result
                 else:
-                    image_result["error"] = error_msg
-                    return image_result
+                    # Normal error - set error message
+                    error_msg = "Gemini processing failed - no images generated"
+                    logger.warning(f"⚠️  {error_msg} (attempt {attempt}/{effective_max_retries})")
+                    if attempt < effective_max_retries:
+                        wait_time = retry_delay * attempt
+                        logger.info(f"⏳ Retrying in {wait_time}s... (attempt {attempt}/{effective_max_retries})")
+                        time.sleep(wait_time)
+                        continue
+                    else:
+                        image_result["error"] = error_msg
+                        return image_result
             
             # Step 4: Upload processed image
             logger.info(f"📤 Uploading processed image to S3...")
