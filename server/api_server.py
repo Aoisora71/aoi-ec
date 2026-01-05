@@ -3932,8 +3932,147 @@ async def delete_multiple_products_from_rakuten(request: DeleteMultipleFromRakut
 async def export_product_management_csv():
     """Export product_management data as CSV file with UTF-8 BOM for Excel compatibility."""
     try:
-        # Get all products (no pagination for export)
-        items = get_product_management(limit=100000, offset=0, sort_by=None, sort_order=None)
+        from modules.db import get_db_connection_context
+        import psycopg2.extras
+        
+        # Get database connection
+        dsn = os.getenv("DATABASE_URL") or f"postgresql://{os.getenv('PGUSER', 'postgres')}:{os.getenv('PGPASSWORD', '')}@{os.getenv('PGHOST', 'localhost')}:{os.getenv('PGPORT', '5432')}/{os.getenv('PGDATABASE', 'postgres')}"
+        
+        # Ensure actual_purchase_price column exists
+        with get_db_connection_context(dsn=dsn) as conn:
+            with conn.cursor() as cur:
+                cur.execute("""
+                    DO $$ 
+                    BEGIN 
+                        IF NOT EXISTS (
+                            SELECT 1 FROM information_schema.columns 
+                            WHERE table_name='product_management' AND column_name='actual_purchase_price'
+                        ) THEN
+                            ALTER TABLE product_management ADD COLUMN actual_purchase_price numeric;
+                        END IF;
+                    END $$;
+                """)
+                conn.commit()
+        
+        # Load pricing settings for actualPurchasePrice calculation
+        from modules.db import get_pricing_settings
+        pricing_settings = get_pricing_settings(dsn=dsn)
+        exchange_rate = pricing_settings.get("exchange_rate", 22.0)
+        profit_margin_percent = pricing_settings.get("profit_margin_percent", 1.5)
+        sales_commission_percent = pricing_settings.get("sales_commission_percent", 10.0)
+        international_shipping_rate = pricing_settings.get("international_shipping_rate", 19.2)
+        domestic_shipping_costs = pricing_settings.get("domestic_shipping_costs", {})
+        default_domestic_shipping = pricing_settings.get("domestic_shipping_cost", 326.0)
+        
+        # Query with JOIN to products_origin to get wholesale_price, weight, and size
+        with get_db_connection_context(dsn=dsn) as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute(
+                    """
+                    SELECT 
+                        pm.id, pm.item_number, pm.title, pm.tagline, pm.product_description, 
+                        pm.sales_description, pm.genre_id, pm.tags, pm.src_url, pm.actual_purchase_price,
+                        po.wholesale_price, po.weight, po.size
+                    FROM product_management pm
+                    LEFT JOIN products_origin po ON pm.item_number = po.product_id
+                    ORDER BY pm.created_at DESC
+                    """
+                )
+                items = [dict(row) for row in cur.fetchall()]
+                
+                # Calculate actual_purchase_price for items where it's NULL (for display in CSV)
+                # We'll calculate it on-the-fly for CSV export, but also update the database
+                def calculate_purchase_price_inline(
+                    product_cost_cny: float,
+                    product_weight_kg: float,
+                    exchange_rate: float,
+                    domestic_shipping_cost: float,
+                    international_shipping_rate: float,
+                    profit_margin_percent: float,
+                    sales_commission_percent: float,
+                ) -> Optional[float]:
+                    """Calculate purchase price using the same logic as _calculate_purchase_price"""
+                    if product_weight_kg is None or product_weight_kg <= 0:
+                        return None
+                    
+                    normalized_cost = max(0, float(product_cost_cny))
+                    weight_kg = max(0, float(product_weight_kg))
+                    
+                    if weight_kg <= 0 or not (weight_kg > 0 and weight_kg < float('inf')):
+                        return None
+                    
+                    base_cost = normalized_cost * exchange_rate * 1.05
+                    international_shipping = international_shipping_rate * weight_kg * exchange_rate
+                    numerator = base_cost + international_shipping + domestic_shipping_cost
+                    
+                    denominator = 100 - (profit_margin_percent + sales_commission_percent)
+                    safe_denominator = 1 if abs(denominator) < 0.0001 else denominator
+                    
+                    actual_price = (numerator * 100) / safe_denominator
+                    # Round to nearest 10 (set ones digit to 0)
+                    rounded_price = int(round(actual_price / 10)) * 10
+                    return float(rounded_price)
+                
+                updated_count = 0
+                for item in items:
+                    item_number = item.get('item_number')
+                    actual_purchase_price = item.get('actual_purchase_price')
+                    wholesale_price = item.get('wholesale_price')
+                    weight = item.get('weight')
+                    size = item.get('size')
+                    
+                    # If actual_purchase_price is NULL but we have wholesale_price and weight, calculate it
+                    if actual_purchase_price is None and wholesale_price is not None and weight is not None:
+                        try:
+                            # Determine domestic shipping cost based on size
+                            effective_domestic_cost = default_domestic_shipping
+                            if size is not None:
+                                if size <= 30:
+                                    effective_domestic_cost = domestic_shipping_costs.get("regular", default_domestic_shipping)
+                                elif size <= 60:
+                                    effective_domestic_cost = domestic_shipping_costs.get("size60", default_domestic_shipping)
+                                elif size <= 80:
+                                    effective_domestic_cost = domestic_shipping_costs.get("size80", default_domestic_shipping)
+                                elif size <= 100:
+                                    effective_domestic_cost = domestic_shipping_costs.get("size100", default_domestic_shipping)
+                            
+                            calculated_price = calculate_purchase_price_inline(
+                                product_cost_cny=float(wholesale_price),
+                                product_weight_kg=float(weight),
+                                exchange_rate=exchange_rate,
+                                domestic_shipping_cost=effective_domestic_cost,
+                                international_shipping_rate=international_shipping_rate,
+                                profit_margin_percent=profit_margin_percent,
+                                sales_commission_percent=sales_commission_percent,
+                            )
+                            if calculated_price is not None:
+                                # Update the database
+                                cur.execute(
+                                    """
+                                    UPDATE product_management
+                                    SET actual_purchase_price = %s
+                                    WHERE item_number = %s
+                                    """,
+                                    (calculated_price, item_number)
+                                )
+                                item['actual_purchase_price'] = calculated_price
+                                updated_count += 1
+                        except (ValueError, TypeError) as e:
+                            logger.warning(f"Failed to calculate actual_purchase_price for {item_number}: {e}")
+                
+                if updated_count > 0:
+                    conn.commit()
+                    logger.info(f"Updated actual_purchase_price for {updated_count} products during CSV export")
+        
+        # Parse jsonb fields
+        for item in items:
+            for key in ("product_description", "tags"):
+                val = item.get(key)
+                if isinstance(val, str):
+                    try:
+                        item[key] = json.loads(val)
+                    except Exception:
+                        pass
         
         # Create CSV in memory with UTF-8 BOM
         output = io.StringIO()
@@ -3953,6 +4092,10 @@ async def export_product_management_csv():
             '販売説明文',
             'ジャンルID',
             'タグ番号',
+            '仕入価格(CNY)',
+            '販売価格(JPY)',
+            '重量(kg)',
+            'サイズ(cm)',
             'Rakumart URL',
             'Rakuten URL'
         ])
@@ -4007,6 +4150,31 @@ async def export_product_management_csv():
             src_url = item.get('src_url', '')
             rakuten_url = f"https://item.rakuten.co.jp/licel-store/{item_number}/" if item_number else ''
             
+            # Get additional fields from products_origin
+            wholesale_price = item.get('wholesale_price', '')
+            if wholesale_price is not None:
+                wholesale_price = str(wholesale_price)
+            else:
+                wholesale_price = ''
+            
+            actual_purchase_price = item.get('actual_purchase_price', '')
+            if actual_purchase_price is not None:
+                actual_purchase_price = str(actual_purchase_price)
+            else:
+                actual_purchase_price = ''
+            
+            weight = item.get('weight', '')
+            if weight is not None:
+                weight = str(weight)
+            else:
+                weight = ''
+            
+            size = item.get('size', '')
+            if size is not None:
+                size = str(size)
+            else:
+                size = ''
+            
             writer.writerow([
                 item_number,
                 title,
@@ -4015,6 +4183,10 @@ async def export_product_management_csv():
                 sales_description,
                 genre_id,
                 tags_str,
+                wholesale_price,
+                actual_purchase_price,
+                weight,
+                size,
                 src_url,
                 rakuten_url
             ])

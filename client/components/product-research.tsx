@@ -129,7 +129,7 @@ export function ProductResearch() {
   const [detailOpen, setDetailOpen] = useState(false)
   const [detailProduct, setDetailProduct] = useState<any | null>(null)
   const [purchasePriceSettings, setPurchasePriceSettings] = useState<PurchasePriceSettings>({
-    exchangeRate: 20.0,
+    exchangeRate: 24.0,
     domesticShippingCost: 300,
     domesticShippingCosts: {
       regular: 300,

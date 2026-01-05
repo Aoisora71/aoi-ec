@@ -1103,6 +1103,9 @@ create table if not exists product_management (
     middle_category text,  -- Middle category from products_origin
     r_cat_id jsonb not null default '[]'::jsonb,  -- Rakuten category IDs from category_management
     
+    -- Purchase price information
+    actual_purchase_price numeric,  -- Calculated actual purchase price (sale price) in JPY
+    
     -- Audit
     created_at timestamptz not null default now()
 );
@@ -5011,6 +5014,15 @@ def upsert_product_management_from_origin_ids(
                 sample_keys = list(category_genre_attrs_map.keys())[:5]
                 logger.info(f"📋 Sample category_ids in map: {sample_keys}")
 
+            # Load pricing settings for actualPurchasePrice calculation
+            pricing_settings = get_pricing_settings(dsn=dsn_final)
+            exchange_rate = pricing_settings.get("exchange_rate", 22.0)
+            profit_margin_percent = pricing_settings.get("profit_margin_percent", 1.5)
+            sales_commission_percent = pricing_settings.get("sales_commission_percent", 10.0)
+            international_shipping_rate = pricing_settings.get("international_shipping_rate", 19.2)
+            domestic_shipping_costs = pricing_settings.get("domestic_shipping_costs", {})
+            default_domestic_shipping = pricing_settings.get("domestic_shipping_cost", 326.0)
+
             # Process and save each product individually to ensure immediate database persistence
             saved_count = 0
             for r in rows:
@@ -5019,6 +5031,9 @@ def upsert_product_management_from_origin_ids(
                 main_category = r.get("main_category")
                 middle_category = r.get("middle_category")
                 product_type = r.get("type")  # This is the category ID from products_origin
+                wholesale_price = r.get("wholesale_price")
+                weight = r.get("weight")
+                size = r.get("size")
                 
                 # Get genre_id and attributes from category_management based on middle_category
                 category_genre_id = None
@@ -5738,6 +5753,39 @@ def upsert_product_management_from_origin_ids(
                     except Exception as e:
                         logger.error(f"❌ Error extracting inventory for product {product_id}: {e}", exc_info=True)
                 
+                # Calculate actualPurchasePrice (sale price) from wholesale_price and weight
+                actual_purchase_price = None
+                if wholesale_price is not None and weight is not None:
+                    try:
+                        # Determine domestic shipping cost based on size
+                        effective_domestic_cost = default_domestic_shipping
+                        if size is not None:
+                            if size <= 30:
+                                effective_domestic_cost = domestic_shipping_costs.get("regular", default_domestic_shipping)
+                            elif size <= 60:
+                                effective_domestic_cost = domestic_shipping_costs.get("size60", default_domestic_shipping)
+                            elif size <= 80:
+                                effective_domestic_cost = domestic_shipping_costs.get("size80", default_domestic_shipping)
+                            elif size <= 100:
+                                effective_domestic_cost = domestic_shipping_costs.get("size100", default_domestic_shipping)
+                        
+                        purchase_price_str = _calculate_purchase_price(
+                            product_cost_cny=float(wholesale_price),
+                            product_weight_kg=float(weight),
+                            exchange_rate=exchange_rate,
+                            domestic_shipping_cost=effective_domestic_cost,
+                            international_shipping_rate=international_shipping_rate,
+                            profit_margin_percent=profit_margin_percent,
+                            sales_commission_percent=sales_commission_percent,
+                        )
+                        if purchase_price_str:
+                            actual_purchase_price = float(purchase_price_str)
+                            logger.info(f"✅ Calculated actualPurchasePrice for product {product_id}: {actual_purchase_price} JPY")
+                        else:
+                            logger.warning(f"⚠️  Failed to calculate actualPurchasePrice for product {product_id} (weight or price missing)")
+                    except (ValueError, TypeError) as e:
+                        logger.warning(f"⚠️  Failed to calculate actualPurchasePrice for product {product_id}: {e}")
+                
                 # Insert/update this product immediately (save as we process)
                 try:
                     cur.execute(
@@ -5746,10 +5794,10 @@ def upsert_product_management_from_origin_ids(
                             item_number, title, product_description, images, product_image_code,
                             item_type, tagline, sales_description, genre_id, tags,
                             hide_item, unlimited_inventory_flag, features, payment, layout,
-                            variant_selectors, variants, inventory, src_url, main_category, middle_category, r_cat_id
+                            variant_selectors, variants, inventory, src_url, main_category, middle_category, r_cat_id, actual_purchase_price
                         )
                         VALUES (
-                            %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s, %s, %s, %s
+                            %s, %s, %s::jsonb, %s::jsonb, %s, %s, %s, %s, %s, %s, %s, %s, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s::jsonb, %s, %s, %s, %s, %s
                         )
                         ON CONFLICT (item_number) DO UPDATE SET
                             title = excluded.title,
@@ -5770,7 +5818,8 @@ def upsert_product_management_from_origin_ids(
                             src_url = excluded.src_url,
                             main_category = excluded.main_category,
                             middle_category = excluded.middle_category,
-                            r_cat_id = excluded.r_cat_id
+                            r_cat_id = excluded.r_cat_id,
+                            actual_purchase_price = excluded.actual_purchase_price
                         """,
                         (
                             product_id,  # item_number
@@ -5794,7 +5843,8 @@ def upsert_product_management_from_origin_ids(
                             src_url,  # src_url (from detail_json.fromUrl)
                             main_category,  # main_category (from products_origin)
                             middle_category,  # middle_category (from products_origin)
-                            r_cat_id_json  # r_cat_id (Rakuten category IDs as JSON array)
+                            r_cat_id_json,  # r_cat_id (Rakuten category IDs as JSON array)
+                            actual_purchase_price  # actual_purchase_price (calculated sale price)
                         ),
                     )
                     
@@ -5993,6 +6043,109 @@ def delete_product_management_by_item_numbers(
         
         conn.commit()
         return deleted
+
+
+def update_all_products_actual_purchase_price(
+    *,
+    dsn: Optional[str] = None
+) -> int:
+    """
+    Update actual_purchase_price for all products in product_management table
+    where actual_purchase_price is NULL but wholesale_price and weight are available.
+    
+    Args:
+        dsn: Optional database connection string
+        
+    Returns:
+        Number of products updated
+    """
+    _ensure_import()
+    dsn_final = dsn or _get_dsn()
+    if not dsn_final:
+        raise RuntimeError("PostgreSQL DSN is not configured. Set DATABASE_URL or PG* env vars.")
+    
+    # Load pricing settings
+    pricing_settings = get_pricing_settings(dsn=dsn_final)
+    exchange_rate = pricing_settings.get("exchange_rate", 22.0)
+    profit_margin_percent = pricing_settings.get("profit_margin_percent", 1.5)
+    sales_commission_percent = pricing_settings.get("sales_commission_percent", 10.0)
+    international_shipping_rate = pricing_settings.get("international_shipping_rate", 19.2)
+    domestic_shipping_costs = pricing_settings.get("domestic_shipping_costs", {})
+    default_domestic_shipping = pricing_settings.get("domestic_shipping_cost", 326.0)
+    
+    updated_count = 0
+    try:
+        with get_db_connection_context(dsn=dsn_final) as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                # Get all products where actual_purchase_price is NULL
+                cur.execute(
+                    """
+                    SELECT 
+                        pm.item_number, po.wholesale_price, po.weight, po.size
+                    FROM product_management pm
+                    LEFT JOIN products_origin po ON pm.item_number = po.product_id
+                    WHERE pm.actual_purchase_price IS NULL
+                      AND po.wholesale_price IS NOT NULL
+                      AND po.weight IS NOT NULL
+                      AND po.weight > 0
+                    """
+                )
+                products = cur.fetchall()
+                
+                logger.info(f"Found {len(products)} products with NULL actual_purchase_price that can be calculated")
+                
+                for product in products:
+                    item_number = product.get('item_number')
+                    wholesale_price = product.get('wholesale_price')
+                    weight = product.get('weight')
+                    size = product.get('size')
+                    
+                    try:
+                        # Determine domestic shipping cost based on size
+                        effective_domestic_cost = default_domestic_shipping
+                        if size is not None:
+                            if size <= 30:
+                                effective_domestic_cost = domestic_shipping_costs.get("regular", default_domestic_shipping)
+                            elif size <= 60:
+                                effective_domestic_cost = domestic_shipping_costs.get("size60", default_domestic_shipping)
+                            elif size <= 80:
+                                effective_domestic_cost = domestic_shipping_costs.get("size80", default_domestic_shipping)
+                            elif size <= 100:
+                                effective_domestic_cost = domestic_shipping_costs.get("size100", default_domestic_shipping)
+                        
+                        purchase_price_str = _calculate_purchase_price(
+                            product_cost_cny=float(wholesale_price),
+                            product_weight_kg=float(weight),
+                            exchange_rate=exchange_rate,
+                            domestic_shipping_cost=effective_domestic_cost,
+                            international_shipping_rate=international_shipping_rate,
+                            profit_margin_percent=profit_margin_percent,
+                            sales_commission_percent=sales_commission_percent,
+                        )
+                        if purchase_price_str:
+                            calculated_price = float(purchase_price_str)
+                            # Update the database
+                            cur.execute(
+                                """
+                                UPDATE product_management
+                                SET actual_purchase_price = %s
+                                WHERE item_number = %s
+                                """,
+                                (calculated_price, item_number)
+                            )
+                            updated_count += 1
+                            if updated_count % 100 == 0:
+                                conn.commit()
+                                logger.info(f"Updated {updated_count} products so far...")
+                    except (ValueError, TypeError) as e:
+                        logger.warning(f"Failed to calculate actual_purchase_price for {item_number}: {e}")
+                
+                conn.commit()
+                logger.info(f"✅ Updated actual_purchase_price for {updated_count} products")
+                return updated_count
+    except Exception as e:
+        logger.error(f"❌ Failed to update actual_purchase_price for products: {e}", exc_info=True)
+        raise
 
 
 def update_product_registration_status(
