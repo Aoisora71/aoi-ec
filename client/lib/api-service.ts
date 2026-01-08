@@ -955,12 +955,15 @@ class ApiService {
     return this.request<ProductResponse>(`/api/product-management?${params.toString()}`, {}, { throwOnError: false })
   }
 
-  async exportProductManagementCSV(): Promise<Blob> {
+  async exportProductManagementCSV(itemNumbers?: string[]): Promise<Blob> {
     const response = await fetch(`${API_BASE_URL}/api/product-management/export-csv`, {
-      method: 'GET',
+      method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
+      body: JSON.stringify({
+        item_numbers: itemNumbers || []
+      }),
     })
     if (!response.ok) {
       throw new Error(`Failed to export CSV: ${response.statusText}`)
@@ -1011,6 +1014,28 @@ class ApiService {
     return this.request('/api/product-management/register-multiple-to-rakuten', {
       method: 'POST',
       body: JSON.stringify({ item_numbers: itemNumbers }),
+    }, { throwOnError: false, timeout: 600000 }) // 10 minutes (600 seconds)
+  }
+
+  async updateChangesToRakuten(): Promise<{ 
+    success: boolean
+    total_count?: number
+    success_count?: number
+    failure_count?: number
+    results?: Array<{
+      item_number: string
+      success: boolean
+      message?: string
+      error?: string
+      error_details?: string
+    }>
+    message?: string
+    error?: string
+  }> {
+    // Update changes can take a long time, increase timeout to 10 minutes
+    return this.request('/api/product-management/update-changes-to-rakuten', {
+      method: 'POST',
+      body: JSON.stringify({}),
     }, { throwOnError: false, timeout: 600000 }) // 10 minutes (600 seconds)
   }
 
