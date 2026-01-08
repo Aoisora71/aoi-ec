@@ -2809,6 +2809,145 @@ async def register_multiple_products_to_rakuten(request: RegisterMultipleToRakut
         }
 
 
+@app.post("/api/product-management/update-changes-to-rakuten")
+async def update_changes_to_rakuten():
+    """Register products with change_status='1' to Rakuten and clear change_status on success."""
+    try:
+        from modules.db import get_db_connection_context, update_product_management_settings, update_rakuten_registration_status
+        import psycopg2.extras
+        from modules.rakuten_product import register_product_from_product_management, format_error_message
+        
+        # Get database connection
+        dsn = os.getenv("DATABASE_URL") or f"postgresql://{os.getenv('PGUSER', 'postgres')}:{os.getenv('PGPASSWORD', '')}@{os.getenv('PGHOST', 'localhost')}:{os.getenv('PGPORT', '5432')}/{os.getenv('PGDATABASE', 'postgres')}"
+        
+        # Get products with change_status='1'
+        with get_db_connection_context(dsn=dsn) as conn:
+            with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                cur.execute("""
+                    SELECT item_number
+                    FROM product_management
+                    WHERE change_status = '1'
+                    ORDER BY created_at DESC
+                """)
+                products = [dict(row) for row in cur.fetchall()]
+        
+        if not products:
+            return {
+                "success": True,
+                "total_count": 0,
+                "success_count": 0,
+                "failure_count": 0,
+                "results": [],
+                "message": "変更内容更新対象の商品がありません（change_status='1'の商品がありません）"
+            }
+        
+        results = []
+        success_count = 0
+        failure_count = 0
+        
+        # Process each product sequentially
+        for idx, product in enumerate(products, 1):
+            item_number = product.get('item_number')
+            if not item_number:
+                continue
+            
+            try:
+                logger.info(f"Updating changes for product {idx}/{len(products)}: {item_number}")
+                
+                # Register product to Rakuten using the rakuten_product module
+                result = register_product_from_product_management(item_number)
+                
+                if result.get("success"):
+                    logger.info(f"Successfully registered product {item_number} to Rakuten")
+                    add_log("success", f"Product {item_number} registered to Rakuten (change update)", result.get("message", ""), "rakuten")
+                    
+                    # Update registration status in database (success)
+                    update_rakuten_registration_status(item_number, "true")
+                    
+                    # Clear change_status (set to empty string or NULL)
+                    update_product_management_settings(item_number, change_status="")
+                    
+                    results.append({
+                        "item_number": item_number,
+                        "success": True,
+                        "message": result.get("message", "Product registered successfully")
+                    })
+                    success_count += 1
+                else:
+                    error_msg = result.get("error", "Unknown error")
+                    error_details = format_error_message(result)
+                    
+                    # Log detailed error information
+                    logger.error(f"Failed to register product {item_number} to Rakuten: {error_msg}")
+                    if result.get("error_data"):
+                        logger.error(f"Rakuten API Error Data: {json.dumps(result.get('error_data'), indent=2, ensure_ascii=False)}")
+                    if result.get("error_text"):
+                        logger.error(f"Rakuten API Error Text: {result.get('error_text')}")
+                    if result.get("status_code"):
+                        logger.error(f"Rakuten API Status Code: {result.get('status_code')}")
+                    
+                    add_log("error", f"Failed to register product {item_number} to Rakuten (change update)", error_msg, "rakuten")
+                    
+                    # Update registration status in database (failed)
+                    update_rakuten_registration_status(item_number, "false")
+                    
+                    # Keep change_status as '1' for failed products so they can be retried
+                    
+                    results.append({
+                        "item_number": item_number,
+                        "success": False,
+                        "error": error_msg,
+                        "error_details": error_details,
+                        "message": f"Failed to register product to Rakuten: {error_msg}"
+                    })
+                    failure_count += 1
+                    
+            except Exception as e:
+                error_msg = str(e)
+                logger.error(f"Exception while registering product {item_number} to Rakuten: {error_msg}")
+                add_log("error", f"Exception while registering product {item_number} to Rakuten (change update)", error_msg, "rakuten")
+                
+                # Update registration status in database (failed)
+                try:
+                    update_rakuten_registration_status(item_number, "false")
+                except Exception as db_error:
+                    logger.error(f"Failed to update registration status: {db_error}")
+                
+                # Keep change_status as '1' for failed products so they can be retried
+                
+                results.append({
+                    "item_number": item_number,
+                    "success": False,
+                    "error": error_msg,
+                    "message": f"Failed to register product to Rakuten: {error_msg}"
+                })
+                failure_count += 1
+        
+        # Return aggregated results
+        total_count = len(products)
+        overall_success = failure_count == 0
+        
+        return {
+            "success": overall_success,
+            "total_count": total_count,
+            "success_count": success_count,
+            "failure_count": failure_count,
+            "results": results,
+            "message": f"変更内容更新: {success_count}/{total_count}件の商品を楽天に登録しました" + (f"（{failure_count}件失敗）" if failure_count > 0 else "")
+        }
+            
+    except Exception as e:
+        error_msg = str(e)
+        logger.error(f"Exception while updating changes to Rakuten: {error_msg}")
+        add_log("error", "Exception while updating changes to Rakuten", error_msg, "rakuten")
+        
+        return {
+            "success": False,
+            "error": error_msg,
+            "message": f"変更内容更新に失敗しました: {error_msg}"
+        }
+
+
 @app.post("/api/product-management/{item_number}/upload-images-to-rakuten")
 async def upload_product_images_to_rakuten(item_number: str):
     """
@@ -3928,10 +4067,22 @@ async def delete_multiple_products_from_rakuten(request: DeleteMultipleFromRakut
         }
 
 
-@app.get("/api/product-management/export-csv")
-async def export_product_management_csv():
-    """Export product_management data as CSV file with UTF-8 BOM for Excel compatibility."""
+@app.post("/api/product-management/export-csv")
+async def export_product_management_csv(request: Optional[dict] = Body(None)):
+    """Export product_management data as CSV file with UTF-8 BOM for Excel compatibility.
+    
+    Request body (optional):
+    - item_numbers: List of item_number strings to export. If not provided, exports all products.
+    """
     try:
+        # Get selected item_numbers from request body
+        selected_item_numbers = None
+        if request and isinstance(request, dict):
+            selected_item_numbers = request.get('item_numbers')
+            if selected_item_numbers and not isinstance(selected_item_numbers, list):
+                selected_item_numbers = None
+        
+        logger.info(f"CSV export requested with {len(selected_item_numbers) if selected_item_numbers else 'all'} products")
         from modules.db import get_db_connection_context
         import psycopg2.extras
         
@@ -3967,17 +4118,36 @@ async def export_product_management_csv():
         # Query with JOIN to products_origin to get wholesale_price, weight, and size
         with get_db_connection_context(dsn=dsn) as conn:
             with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-                cur.execute(
+                # Build query with optional filter for selected item_numbers
+                if selected_item_numbers and len(selected_item_numbers) > 0:
+                    # Filter by selected item_numbers
+                    placeholders = ','.join(['%s'] * len(selected_item_numbers))
+                    query = f"""
+                        SELECT 
+                            pm.id, pm.item_number, pm.title, pm.tagline, pm.product_description, 
+                            pm.sales_description, pm.genre_id, pm.tags, pm.src_url, pm.actual_purchase_price,
+                            pm.change_status,
+                            po.wholesale_price, po.weight, po.size
+                        FROM product_management pm
+                        LEFT JOIN products_origin po ON pm.item_number = po.product_id
+                        WHERE pm.item_number IN ({placeholders})
+                        ORDER BY pm.created_at DESC
                     """
-                    SELECT 
-                        pm.id, pm.item_number, pm.title, pm.tagline, pm.product_description, 
-                        pm.sales_description, pm.genre_id, pm.tags, pm.src_url, pm.actual_purchase_price,
-                        po.wholesale_price, po.weight, po.size
-                    FROM product_management pm
-                    LEFT JOIN products_origin po ON pm.item_number = po.product_id
-                    ORDER BY pm.created_at DESC
-                    """
-                )
+                    cur.execute(query, selected_item_numbers)
+                else:
+                    # Export all products if no selection
+                    cur.execute(
+                        """
+                        SELECT 
+                            pm.id, pm.item_number, pm.title, pm.tagline, pm.product_description, 
+                            pm.sales_description, pm.genre_id, pm.tags, pm.src_url, pm.actual_purchase_price,
+                            pm.change_status,
+                            po.wholesale_price, po.weight, po.size
+                        FROM product_management pm
+                        LEFT JOIN products_origin po ON pm.item_number = po.product_id
+                        ORDER BY pm.created_at DESC
+                        """
+                    )
                 items = [dict(row) for row in cur.fetchall()]
                 
                 # Calculate actual_purchase_price for items where it's NULL (for display in CSV)
@@ -4097,7 +4267,8 @@ async def export_product_management_csv():
             '重量(kg)',
             'サイズ(cm)',
             'Rakumart URL',
-            'Rakuten URL'
+            'Rakuten URL',
+            '変更確認'
         ])
         
         # Write data rows
@@ -4175,6 +4346,13 @@ async def export_product_management_csv():
             else:
                 size = ''
             
+            # Get change_status
+            change_status = item.get('change_status', '')
+            if change_status is None:
+                change_status = ''
+            else:
+                change_status = str(change_status)
+            
             writer.writerow([
                 item_number,
                 title,
@@ -4188,7 +4366,8 @@ async def export_product_management_csv():
                 weight,
                 size,
                 src_url,
-                rakuten_url
+                rakuten_url,
+                change_status
             ])
         
         # Get CSV content
@@ -4331,6 +4510,9 @@ async def drop_removed_columns():
 async def import_product_management_csv(file: UploadFile = File(...)):
     """Import product_management data from CSV file."""
     try:
+        from modules.db import get_db_connection_context, get_pricing_settings, _calculate_purchase_price
+        import psycopg2.extras
+        
         # Read CSV file
         content = await file.read()
         
@@ -4346,124 +4528,364 @@ async def import_product_management_csv(file: UploadFile = File(...)):
         # Parse CSV
         csv_reader = csv.DictReader(io.StringIO(text))
         
+        # Log CSV headers for debugging
+        if csv_reader.fieldnames:
+            logger.info(f"CSV headers detected: {csv_reader.fieldnames}")
+        
+        # Get database connection
+        dsn = os.getenv("DATABASE_URL") or f"postgresql://{os.getenv('PGUSER', 'postgres')}:{os.getenv('PGPASSWORD', '')}@{os.getenv('PGHOST', 'localhost')}:{os.getenv('PGPORT', '5432')}/{os.getenv('PGDATABASE', 'postgres')}"
+        
+        # Load pricing settings for price calculation
+        pricing_settings = get_pricing_settings(dsn=dsn)
+        exchange_rate = pricing_settings.get("exchange_rate", 22.0)
+        profit_margin_percent = pricing_settings.get("profit_margin_percent", 1.5)
+        sales_commission_percent = pricing_settings.get("sales_commission_percent", 10.0)
+        international_shipping_rate = pricing_settings.get("international_shipping_rate", 19.2)
+        domestic_shipping_costs = pricing_settings.get("domestic_shipping_costs", {})
+        default_domestic_shipping = pricing_settings.get("domestic_shipping_cost", 326.0)
+        
         updated_count = 0
         error_count = 0
         errors = []
         
-        for row_num, row in enumerate(csv_reader, start=2):  # Start at 2 (header is row 1)
-            try:
-                item_number = row.get('商品番号', '').strip()
-                if not item_number:
-                    errors.append(f"行 {row_num}: 商品番号が空です")
-                    error_count += 1
-                    continue
-                
-                # Get existing product
-                existing = get_product_management_by_item_number(item_number)
-                if not existing:
-                    errors.append(f"行 {row_num}: 商品番号 '{item_number}' が見つかりません")
-                    error_count += 1
-                    continue
-                
-                # Prepare update data
-                update_data = {}
-                
-                # Update title if provided
-                title = row.get('商品名', '').strip()
-                if title:
-                    update_data['title'] = title
-                
-                # Update tagline if provided
-                tagline = row.get('商品タグ', '').strip()
-                if tagline:
-                    update_data['tagline'] = tagline
-                
-                # Update product_description if provided
-                product_description = row.get('商品説明文', '').strip()
-                if product_description:
-                    # Parse existing product_description to preserve structure
-                    existing_desc = existing.get('product_description')
-                    if isinstance(existing_desc, dict):
-                        # Update pc field, keep sp if exists
-                        update_data['product_description'] = {
-                            'pc': product_description,
-                            'sp': existing_desc.get('sp', product_description)
-                        }
-                    elif isinstance(existing_desc, str):
-                        try:
-                            desc_obj = json.loads(existing_desc)
-                            desc_obj['pc'] = product_description
-                            if 'sp' not in desc_obj:
-                                desc_obj['sp'] = product_description
-                            update_data['product_description'] = desc_obj
-                        except:
-                            update_data['product_description'] = {
-                                'pc': product_description,
-                                'sp': product_description
-                            }
-                    else:
-                        update_data['product_description'] = {
-                            'pc': product_description,
-                            'sp': product_description
-                        }
-                
-                # Update sales_description if provided
-                sales_description = row.get('販売説明文', '').strip()
-                if sales_description:
-                    update_data['sales_description'] = sales_description
-                
-                # Update genre_id if provided
-                genre_id = row.get('ジャンルID', '').strip()
-                if genre_id:
-                    update_data['genre_id'] = genre_id
-                
-                # Update tags if provided
-                tags_str = row.get('タグ番号', '').strip()
-                if tags_str:
-                    try:
-                        # Parse comma-separated tags
-                        tags_list = [int(t.strip()) for t in tags_str.split(',') if t.strip().isdigit()]
-                        if tags_list:
-                            update_data['tags'] = tags_list
-                    except Exception as e:
-                        logger.warning(f"Failed to parse tags for {item_number}: {e}")
-                
-                # Update src_url if provided
-                src_url = row.get('Rakumart URL', '').strip()
-                if src_url:
-                    update_data['src_url'] = src_url
-                
-                # Perform update if we have data to update
-                if update_data:
-                    update_product_management_settings(
-                        item_number,
-                        title=update_data.get('title'),
-                        tagline=update_data.get('tagline'),
-                        product_description=update_data.get('product_description'),
-                        sales_description=update_data.get('sales_description'),
-                        genre_id=update_data.get('genre_id'),
-                        tags=update_data.get('tags'),
-                        src_url=update_data.get('src_url')
+        with get_db_connection_context(dsn=dsn) as conn:
+            for row_num, row in enumerate(csv_reader, start=2):  # Start at 2 (header is row 1)
+                try:
+                    # Try multiple possible column names for item number
+                    item_number = (
+                        row.get('商品番号', '').strip() or 
+                        row.get('商品番号 ', '').strip() or  # with trailing space
+                        row.get('商品番号\t', '').strip() or  # with tab
+                        list(row.values())[0] if row else ''  # first column if header not found
                     )
-                    updated_count += 1
-                else:
-                    errors.append(f"行 {row_num}: 更新するデータがありません")
                     
-            except Exception as e:
-                error_msg = f"行 {row_num}: {str(e)}"
-                errors.append(error_msg)
-                error_count += 1
-                logger.error(f"Error processing CSV row {row_num}: {e}", exc_info=True)
+                    if not item_number:
+                        # Log available keys for debugging
+                        available_keys = list(row.keys()) if row else []
+                        errors.append(f"行 {row_num}: 商品番号が空です。利用可能な列: {available_keys}")
+                        error_count += 1
+                        logger.warning(f"Row {row_num}: No item_number found. Available columns: {available_keys}, Row data: {row}")
+                        continue
+                    
+                    # Check if "変更確認" column is "1" - only update if it is
+                    change_confirmation = (
+                        row.get('変更確認', '').strip() or
+                        row.get('変更確認 ', '').strip() or
+                        row.get('変更確認\t', '').strip()
+                    )
+                    
+                    # Only process rows where 変更確認 is "1"
+                    if change_confirmation != '1':
+                        logger.info(f"Row {row_num}: Skipping product {item_number} - 変更確認 is '{change_confirmation}' (not '1')")
+                        continue
+                    
+                    with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
+                        # Check if product exists in product_management by item_number
+                        # OR in products_origin by product_id
+                        cur.execute("""
+                            SELECT 
+                                pm.id as pm_id, pm.item_number, pm.title, pm.tagline, 
+                                pm.product_description, pm.sales_description, pm.genre_id, 
+                                pm.tags, pm.src_url, pm.variants, pm.actual_purchase_price,
+                                po.product_id, po.weight, po.size, po.wholesale_price
+                            FROM product_management pm
+                            LEFT JOIN products_origin po ON pm.item_number = po.product_id
+                            WHERE pm.item_number = %s OR po.product_id = %s
+                            LIMIT 1
+                        """, (item_number, item_number))
+                        
+                        product_row = cur.fetchone()
+                        if not product_row:
+                            # Check if product exists in either table separately for better error message
+                            cur.execute("SELECT item_number FROM product_management WHERE item_number = %s", (item_number,))
+                            pm_exists = cur.fetchone()
+                            cur.execute("SELECT product_id FROM products_origin WHERE product_id = %s", (item_number,))
+                            po_exists = cur.fetchone()
+                            
+                            if not pm_exists and not po_exists:
+                                errors.append(f"行 {row_num}: 商品番号 '{item_number}' が見つかりません（product_management.item_number または products_origin.product_id で検索）")
+                            else:
+                                errors.append(f"行 {row_num}: 商品番号 '{item_number}' が見つかりましたが、JOIN条件に一致しませんでした")
+                            error_count += 1
+                            logger.warning(f"Row {row_num}: Product {item_number} not found. PM exists: {pm_exists is not None}, PO exists: {po_exists is not None}")
+                            continue
+                        
+                        # Get the actual item_number from product_management (may differ from CSV if matched via product_id)
+                        actual_item_number = product_row.get('item_number') or item_number
+                        product_id = product_row.get('product_id') or item_number
+                        
+                        # Prepare update data for product_management
+                        update_data = {}
+                        
+                        # Update title if provided
+                        title = row.get('商品名', '').strip()
+                        if title:
+                            update_data['title'] = title
+                        
+                        # Update tagline if provided (商品タグ -> tagline)
+                        tagline = row.get('商品タグ', '').strip()
+                        if tagline:
+                            update_data['tagline'] = tagline
+                        
+                        # Update product_description if provided
+                        product_description = row.get('商品説明文', '').strip()
+                        if product_description:
+                            # Parse existing product_description to preserve structure
+                            existing_desc = product_row.get('product_description')
+                            if isinstance(existing_desc, dict):
+                                # Update pc field, keep sp if exists
+                                update_data['product_description'] = {
+                                    'pc': product_description,
+                                    'sp': existing_desc.get('sp', product_description)
+                                }
+                            elif isinstance(existing_desc, str):
+                                try:
+                                    desc_obj = json.loads(existing_desc)
+                                    desc_obj['pc'] = product_description
+                                    if 'sp' not in desc_obj:
+                                        desc_obj['sp'] = product_description
+                                    update_data['product_description'] = desc_obj
+                                except:
+                                    update_data['product_description'] = {
+                                        'pc': product_description,
+                                        'sp': product_description
+                                    }
+                            else:
+                                update_data['product_description'] = {
+                                    'pc': product_description,
+                                    'sp': product_description
+                                }
+                        
+                        # Update sales_description if provided
+                        sales_description = row.get('販売説明文', '').strip()
+                        if sales_description:
+                            update_data['sales_description'] = sales_description
+                        
+                        # Update genre_id if provided
+                        genre_id = row.get('ジャンルID', '').strip()
+                        if genre_id:
+                            update_data['genre_id'] = genre_id
+                        
+                        # Update tags if provided
+                        tags_str = row.get('タグ番号', '').strip()
+                        if tags_str:
+                            try:
+                                # Parse comma-separated tags
+                                tags_list = [int(t.strip()) for t in tags_str.split(',') if t.strip().isdigit()]
+                                if tags_list:
+                                    update_data['tags'] = tags_list
+                            except Exception as e:
+                                logger.warning(f"Failed to parse tags for {item_number}: {e}")
+                        
+                        # Update src_url if provided
+                        src_url = row.get('Rakumart URL', '').strip()
+                        if src_url:
+                            update_data['src_url'] = src_url
+                        
+                        # Get change_status from CSV (変更確認 column)
+                        # Store the value from CSV to update change_status field
+                        csv_change_status = change_confirmation  # This is already "1" if we got here
+                        # But we should also check if there's a different value in the CSV
+                        # For now, we'll use the value from 変更確認 column
+                        # If the column value is "1", we'll update change_status to "1"
+                        # Otherwise, we could use the value as-is
+                        
+                        # Update product_management if we have data to update
+                        if update_data:
+                            update_product_management_settings(
+                                actual_item_number,
+                                title=update_data.get('title'),
+                                tagline=update_data.get('tagline'),
+                                product_description=update_data.get('product_description'),
+                                sales_description=update_data.get('sales_description'),
+                                genre_id=update_data.get('genre_id'),
+                                tags=update_data.get('tags'),
+                                src_url=update_data.get('src_url'),
+                                change_status=csv_change_status
+                            )
+                            logger.info(f"Updated product_management fields for {actual_item_number}")
+                        else:
+                            # Even if no other fields to update, update change_status if provided
+                            if csv_change_status:
+                                update_product_management_settings(
+                                    actual_item_number,
+                                    change_status=csv_change_status
+                                )
+                                logger.info(f"Updated change_status for {actual_item_number} to '{csv_change_status}'")
+                        
+                        # Track if any update was made
+                        has_updates = bool(update_data)
+                        
+                        # Update products_origin weight and size if provided
+                        weight_updated = False
+                        size_updated = False
+                        weight_value = None
+                        size_value = None
+                        
+                        # Try multiple possible column names for weight
+                        weight_str = (
+                            row.get('重量(kg)', '').strip() or
+                            row.get('重量(kg) ', '').strip() or
+                            row.get('重量', '').strip()
+                        )
+                        if weight_str:
+                            try:
+                                weight_value = float(weight_str)
+                                if weight_value > 0:
+                                    cur.execute("""
+                                        UPDATE products_origin
+                                        SET weight = %s
+                                        WHERE product_id = %s
+                                    """, (weight_value, product_id))
+                                    if cur.rowcount > 0:
+                                        weight_updated = True
+                                        logger.info(f"Updated weight for product {product_id}: {weight_value} kg")
+                            except (ValueError, TypeError) as e:
+                                logger.warning(f"Invalid weight value for {item_number}: {weight_str} - {e}")
+                        
+                        # Try multiple possible column names for size
+                        size_str = (
+                            row.get('サイズ(cm)', '').strip() or
+                            row.get('サイズ(cm) ', '').strip() or
+                            row.get('サイズ', '').strip()
+                        )
+                        if size_str:
+                            try:
+                                size_value = float(size_str)
+                                if size_value > 0:
+                                    cur.execute("""
+                                        UPDATE products_origin
+                                        SET size = %s
+                                        WHERE product_id = %s
+                                    """, (size_value, product_id))
+                                    if cur.rowcount > 0:
+                                        size_updated = True
+                                        logger.info(f"Updated size for product {product_id}: {size_value} cm")
+                            except (ValueError, TypeError) as e:
+                                logger.warning(f"Invalid size value for {item_number}: {size_str} - {e}")
+                        
+                        # If weight or size was updated, recalculate actual_purchase_price and update variants
+                        if weight_updated or size_updated:
+                            # Get updated weight and size from products_origin
+                            cur.execute("""
+                                SELECT weight, size, wholesale_price
+                                FROM products_origin
+                                WHERE product_id = %s
+                            """, (product_id,))
+                            origin_data = cur.fetchone()
+                            
+                            if origin_data:
+                                updated_weight = origin_data.get('weight') or weight_value
+                                updated_size = origin_data.get('size') or size_value
+                                wholesale_price = origin_data.get('wholesale_price')
+                                
+                                # Recalculate actual_purchase_price if we have weight and wholesale_price
+                                if updated_weight and wholesale_price:
+                                    # Determine domestic shipping cost based on size
+                                    effective_domestic_cost = default_domestic_shipping
+                                    if updated_size is not None:
+                                        if updated_size <= 30:
+                                            effective_domestic_cost = domestic_shipping_costs.get("regular", default_domestic_shipping)
+                                        elif updated_size <= 60:
+                                            effective_domestic_cost = domestic_shipping_costs.get("size60", default_domestic_shipping)
+                                        elif updated_size <= 80:
+                                            effective_domestic_cost = domestic_shipping_costs.get("size80", default_domestic_shipping)
+                                        elif updated_size <= 100:
+                                            effective_domestic_cost = domestic_shipping_costs.get("size100", default_domestic_shipping)
+                                    
+                                    purchase_price_str = _calculate_purchase_price(
+                                        product_cost_cny=float(wholesale_price),
+                                        product_weight_kg=float(updated_weight),
+                                        exchange_rate=exchange_rate,
+                                        domestic_shipping_cost=effective_domestic_cost,
+                                        international_shipping_rate=international_shipping_rate,
+                                        profit_margin_percent=profit_margin_percent,
+                                        sales_commission_percent=sales_commission_percent,
+                                    )
+                                    
+                                    if purchase_price_str:
+                                        purchase_price = float(purchase_price_str)
+                                        
+                                        # Update actual_purchase_price in product_management
+                                        cur.execute("""
+                                            UPDATE product_management
+                                            SET actual_purchase_price = %s
+                                            WHERE item_number = %s
+                                        """, (purchase_price, actual_item_number))
+                                        
+                                        # Update variants standardPrice
+                                        cur.execute("""
+                                            SELECT variants
+                                            FROM product_management
+                                            WHERE item_number = %s
+                                        """, (actual_item_number,))
+                                        variants_row = cur.fetchone()
+                                        
+                                        if variants_row and variants_row.get('variants'):
+                                            variants = variants_row['variants']
+                                            if isinstance(variants, str):
+                                                try:
+                                                    variants = json.loads(variants)
+                                                except:
+                                                    variants = {}
+                                            
+                                            if isinstance(variants, dict) and variants:
+                                                # Update standardPrice for all variants
+                                                updated_variants = {}
+                                                for sku_id, variant in variants.items():
+                                                    if isinstance(variant, dict):
+                                                        updated_variant = dict(variant)
+                                                        updated_variant['standardPrice'] = purchase_price
+                                                        updated_variants[sku_id] = updated_variant
+                                                    else:
+                                                        updated_variants[sku_id] = variant
+                                                
+                                                # Save updated variants
+                                                cur.execute("""
+                                                    UPDATE product_management
+                                                    SET variants = %s::jsonb
+                                                    WHERE item_number = %s
+                                                """, (json.dumps(updated_variants, ensure_ascii=False), actual_item_number))
+                                                
+                                                logger.info(f"Updated {len(updated_variants)} variants with new standardPrice: {purchase_price} JPY for product {actual_item_number}")
+                                        
+                                        logger.info(f"Updated actual_purchase_price to {purchase_price} JPY for product {actual_item_number}")
+                        
+                        # Only count as updated if we actually made changes
+                        if has_updates or weight_updated or size_updated:
+                            conn.commit()
+                            updated_count += 1
+                            logger.info(f"Successfully updated product {item_number} (row {row_num}) - updates: management={has_updates}, weight={weight_updated}, size={size_updated}")
+                        else:
+                            # No updates to commit, but no error either
+                            logger.info(f"No updates needed for product {item_number} (row {row_num})")
+                            # Still commit to close the transaction
+                            conn.commit()
+                        
+                except Exception as e:
+                    conn.rollback()
+                    error_msg = f"行 {row_num}: {str(e)}"
+                    errors.append(error_msg)
+                    error_count += 1
+                    logger.error(f"Error processing CSV row {row_num} (item_number: {item_number if 'item_number' in locals() else 'N/A'}): {e}", exc_info=True)
+                    # Log row data for debugging
+                    if 'row' in locals():
+                        logger.error(f"Row data: {row}")
         
         message = f"{updated_count}件の商品を更新しました"
         if error_count > 0:
             message += f"（{error_count}件エラー）"
         
+        # Log summary
+        logger.info(f"CSV import completed: {updated_count} updated, {error_count} errors")
+        if errors:
+            logger.warning(f"First 10 errors: {errors[:10]}")
+        
         return {
             "success": True,
             "updated_count": updated_count,
             "error_count": error_count,
-            "errors": errors[:50],  # Limit to first 50 errors
+            "errors": errors[:100],  # Increase limit to 100 errors for better debugging
             "message": message
         }
         

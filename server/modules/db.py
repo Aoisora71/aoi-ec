@@ -1106,6 +1106,9 @@ create table if not exists product_management (
     -- Purchase price information
     actual_purchase_price numeric,  -- Calculated actual purchase price (sale price) in JPY
     
+    -- Change status
+    change_status text,  -- Change status for tracking modifications (e.g., "modified", "pending", "approved")
+    
     -- Audit
     created_at timestamptz not null default now()
 );
@@ -1645,6 +1648,7 @@ def update_product_management_settings(
     sales_description: Optional[str] = None,
     src_url: Optional[str] = None,
     normal_delivery_date_id: Optional[int] = None,
+    change_status: Optional[str] = None,
     *,
     dsn: Optional[str] = None
 ) -> bool:
@@ -1757,6 +1761,10 @@ def update_product_management_settings(
                 if src_url is not None:
                     updates.append("src_url = %s")
                     params.append(src_url)
+                
+                if change_status is not None:
+                    updates.append("change_status = %s")
+                    params.append(change_status)
                 
                 # Update variants with delivery date IDs if provided
                 if normal_delivery_date_id is not None:
@@ -3858,6 +3866,18 @@ def fix_product_management_schema(*, dsn: Optional[str] = None) -> None:
                     END IF;
                 END $$;
             """)
+            # Add change_status column if it doesn't exist
+            cur.execute("""
+                DO $$ 
+                BEGIN 
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='product_management' AND column_name='change_status'
+                    ) THEN
+                        ALTER TABLE product_management ADD COLUMN change_status text;
+                    END IF;
+                END $$;
+            """)
             # Ensure useful indexes
             cur.execute("create unique index if not exists uniq_product_management_item_number on product_management(item_number);")
         conn.commit()
@@ -4855,6 +4875,18 @@ def upsert_product_management_from_origin_ids(
                         WHERE table_name='product_management' AND column_name='r_cat_id'
                     ) THEN
                         ALTER TABLE product_management ADD COLUMN r_cat_id text;
+                    END IF;
+                END $$;
+            """)
+            # Add change_status column if it doesn't exist (for existing tables)
+            cur.execute("""
+                DO $$ 
+                BEGIN 
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='product_management' AND column_name='change_status'
+                    ) THEN
+                        ALTER TABLE product_management ADD COLUMN change_status text;
                     END IF;
                 END $$;
             """)
