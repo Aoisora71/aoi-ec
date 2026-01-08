@@ -240,6 +240,7 @@ export function ProductManagement() {
   const [registeringInventory, setRegisteringInventory] = useState<Record<string, boolean>>({})
   const [checkingStatus, setCheckingStatus] = useState<Record<string, boolean>>({})
   const [isBulkCheckingStatus, setIsBulkCheckingStatus] = useState(false)
+  const [isUpdatingChanges, setIsUpdatingChanges] = useState(false)
   const [toggling, setToggling] = useState<Record<string, boolean>>({})
   const [togglingAll, setTogglingAll] = useState(false)
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
@@ -2504,7 +2505,21 @@ export function ProductManagement() {
             onClick={async () => {
               setIsExportingCSV(true)
               try {
-                const blob = await apiService.exportProductManagementCSV()
+                // Get item_numbers from selected products
+                const selectedItemNumbers: string[] = []
+                if (selectedProducts.length > 0) {
+                  // Get item_number for each selected product
+                  selectedProducts.forEach(productId => {
+                    const product = items.find(p => (p.item_number || p.id) === productId)
+                    if (product && product.item_number) {
+                      selectedItemNumbers.push(product.item_number)
+                    }
+                  })
+                }
+                
+                const blob = await apiService.exportProductManagementCSV(
+                  selectedItemNumbers.length > 0 ? selectedItemNumbers : undefined
+                )
                 const url = window.URL.createObjectURL(blob)
                 const a = document.createElement('a')
                 a.href = url
@@ -2515,7 +2530,9 @@ export function ProductManagement() {
                 document.body.removeChild(a)
                 toast({
                   title: "成功",
-                  description: "CSVファイルをダウンロードしました",
+                  description: selectedItemNumbers.length > 0 
+                    ? `${selectedItemNumbers.length}件の商品をCSVファイルでダウンロードしました`
+                    : "CSVファイルをダウンロードしました",
                 })
               } catch (error: any) {
                 toast({
@@ -2622,6 +2639,54 @@ export function ProductManagement() {
               <RefreshCw className="h-4 w-4" />
             )}
             <span className="hidden sm:inline">登録状態を一括更新</span>
+          </Button>
+          <Button 
+            size="sm" 
+            variant="default"
+            className="gap-2 flex-1 md:flex-none bg-primary hover:bg-primary/90"
+            onClick={async () => {
+              setIsUpdatingChanges(true)
+              try {
+                toast({
+                  title: "更新開始",
+                  description: "変更内容を楽天市場に更新しています...",
+                })
+                
+                const result = await apiService.updateChangesToRakuten()
+                
+                if (result.success) {
+                  toast({
+                    title: "成功",
+                    description: result.message || `変更内容更新: ${result.success_count || 0}件の商品を楽天に登録しました`,
+                  })
+                  // Refresh products to show updated change_status
+                  await refreshProducts()
+                } else {
+                  const errorMsg = translateErrorMessage(result.error) || "変更内容更新に失敗しました"
+                  toast({
+                    title: "エラー",
+                    description: errorMsg,
+                    variant: "destructive",
+                  })
+                }
+              } catch (error: any) {
+                toast({
+                  title: "エラー",
+                  description: translateErrorMessage(error?.message) || "変更内容更新に失敗しました",
+                  variant: "destructive",
+                })
+              } finally {
+                setIsUpdatingChanges(false)
+              }
+            }}
+            disabled={isUpdatingChanges}
+          >
+            {isUpdatingChanges ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Save className="h-4 w-4" />
+            )}
+            <span className="hidden sm:inline">変更内容更新</span>
           </Button>
         </div>
       </div>

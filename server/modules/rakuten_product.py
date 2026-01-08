@@ -1064,6 +1064,28 @@ def clean_variants(variants: Dict[str, Any]) -> Tuple[Dict[str, Any], Dict[str, 
             
             cleaned_variant['attributes'] = cleaned_attributes
         
+        # Ensure standardPrice is an integer (Rakuten API requires integer, not float)
+        if 'standardPrice' in cleaned_variant:
+            standard_price = cleaned_variant['standardPrice']
+            try:
+                # Convert to integer if it's a float or string
+                if isinstance(standard_price, float):
+                    cleaned_variant['standardPrice'] = int(standard_price)
+                elif isinstance(standard_price, str):
+                    # Remove any decimal points and convert to int
+                    cleaned_price = standard_price.split('.')[0]
+                    cleaned_variant['standardPrice'] = int(cleaned_price) if cleaned_price else 0
+                elif isinstance(standard_price, int):
+                    # Already an integer, keep as is
+                    cleaned_variant['standardPrice'] = standard_price
+                else:
+                    # Try to convert to int
+                    cleaned_variant['standardPrice'] = int(float(standard_price))
+            except (ValueError, TypeError) as e:
+                logger.warning(f"Failed to convert standardPrice to integer for variant {sku_id}: {standard_price} - {e}")
+                # Remove invalid standardPrice
+                cleaned_variant.pop('standardPrice', None)
+        
         cleaned[sku_id] = cleaned_variant
     
     return cleaned, selector_usage
