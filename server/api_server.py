@@ -71,6 +71,7 @@ from modules.db import (
     update_product_hide_item,
     update_products_hide_item_batch,
     update_all_products_hide_item,
+    update_product_block,
     update_product_management_settings,
     delete_product_image,
     update_variant_selectors_with_translations,
@@ -2287,6 +2288,41 @@ async def update_product_hide_item_endpoint(item_number: str, hide_item: bool):
         }
 
 
+@app.patch("/api/product-management/{item_number}/block")
+async def update_product_block_endpoint(item_number: str, block: bool):
+    """
+    Update the block field for a single product.
+    
+    Args:
+        item_number: The product item_number
+        block: Boolean value (True = blocked, False = unblocked)
+    """
+    try:
+        logger.info(f"Updating block for product {item_number} to {block}")
+        success = update_product_block(item_number, block)
+        
+        if success:
+            add_log("info", f"Product block updated", f"Product {item_number}: {'blocked' if block else 'unblocked'}", "product_management")
+            return {
+                "success": True,
+                "message": f"Product {item_number} block status updated to {'blocked' if block else 'unblocked'}"
+            }
+        else:
+            return {
+                "success": False,
+                "error": "Product not found",
+                "message": f"No product found with item_number: {item_number}"
+            }
+    except Exception as e:
+        logger.error(f"Failed to update block for product {item_number}: {e}")
+        add_log("error", "Failed to update product block", str(e), "product_management")
+        return {
+            "success": False,
+            "error": str(e),
+            "message": f"Failed to update product block: {str(e)}"
+        }
+
+
 @app.patch("/api/product-management/batch-hide-item")
 async def update_products_hide_item_batch_endpoint(request: UpdateHideItemRequest):
     """
@@ -4396,19 +4432,21 @@ async def list_product_management(
     limit: int = 50, 
     offset: int = 0, 
     sort_by: Optional[str] = None, 
-    sort_order: Optional[str] = None
+    sort_order: Optional[str] = None,
+    search: Optional[str] = None
 ):
     """
-    List products from product_management table with optional sorting.
+    List products from product_management table with optional sorting and search.
     
     Args:
         limit: Maximum number of products to return
         offset: Number of products to skip
         sort_by: Field to sort by ('created_at' or 'rakuten_registered_at')
         sort_order: Sort order ('asc' or 'desc')
+        search: Optional search query to filter by title or item_number
     """
     try:
-        items = get_product_management(limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order)
+        items = get_product_management(limit=limit, offset=offset, sort_by=sort_by, sort_order=sort_order, search=search)
         return ProductResponse(success=True, data=items, total=len(items), message=f"Retrieved {len(items)} items")
     except Exception as e:
         logger.error(f"Failed to list product_management: {e}")
@@ -4420,7 +4458,7 @@ async def get_stats():
     """Basic counts for dashboard KPIs."""
     try:
         counts = get_counts()
-        recent_products = get_recently_registered_products(limit=5)
+        recent_products = get_recently_registered_products(limit=50)
         category_counts = get_category_registration_counts()
         counts["recent_products"] = recent_products
         counts["category_registration_counts"] = category_counts

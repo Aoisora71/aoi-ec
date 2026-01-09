@@ -36,9 +36,9 @@ const navigation = [
   { name: "ダッシュボード", href: "/", icon: LayoutDashboard },
   { name: "商品リサーチ", href: "/research", icon: Search },
   { name: "商品管理", href: "/products", icon: Package },
-  { name: "コンプライアンス", href: "/compliance", icon: ShieldCheck },
+  // 一時的に非表示: { name: "コンプライアンス", href: "/compliance", icon: ShieldCheck },
   { name: "物流管理", href: "/logistics", icon: Truck },
-  { name: "パフォーマンス", href: "/analytics", icon: BarChart3 },
+  // 一時的に非表示: { name: "パフォーマンス", href: "/analytics", icon: BarChart3 },
   { name: "設定", href: "/settings", icon: Settings },
 ]
 

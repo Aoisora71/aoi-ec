@@ -165,6 +165,91 @@ class RakutenProductAPI:
         except Exception as e:
             return {"success": False, "error": str(e)}
 
+    def update_product_price(self, manage_number: str, variants: Dict[str, Dict[str, Any]], genre_id: Optional[str] = None) -> Dict[str, Any]:
+        """
+        Partially update product price on Rakuten using PATCH endpoint.
+        Only updates the standardPrice field in variants.
+        
+        Args:
+            manage_number: Product control number (max 32 characters)
+            variants: Dictionary of variants with only standardPrice field
+                     Format: {variantId: {"standardPrice": "price"}}
+            genre_id: Optional existing genreId to include (may be required by Rakuten even for PATCH)
+            
+        Returns:
+            Response dictionary with success status and details
+        """
+        url = f"{self.BASE_URL}/{manage_number}"
+        
+        headers = {
+            "Authorization": self.auth_header,
+            "Content-Type": "application/json"
+        }
+        
+        # Prepare PATCH payload with only variants and standardPrice
+        # Include genreId if provided (to satisfy Rakuten validation without changing it)
+        patch_data = {
+            "variants": variants
+        }
+        if genre_id:
+            patch_data["genreId"] = str(genre_id)
+        
+        try:
+            response = requests.patch(url, headers=headers, json=patch_data, timeout=30)
+            
+            # Check status code - 204 No Content means success
+            if response.status_code == 204:
+                return {"success": True, "data": None, "message": "Product price updated successfully"}
+            
+            # For error status codes, raise to be caught by exception handler
+            response.raise_for_status()
+            
+            # If we get here, it's a 2xx but not 204
+            try:
+                return {"success": True, "data": response.json(), "message": "Request processed"}
+            except (ValueError, json.JSONDecodeError):
+                return {"success": True, "data": None, "message": "Request processed (no response body)"}
+                
+        except requests.exceptions.HTTPError as e:
+            error_response = None
+            error_text = None
+            
+            # Try to get JSON error response
+            if hasattr(e, 'response') and e.response is not None:
+                # Get raw text first
+                try:
+                    error_text = e.response.text
+                except:
+                    error_text = None
+                
+                # Try to parse as JSON
+                if error_text:
+                    try:
+                        error_response = e.response.json()
+                    except (ValueError, json.JSONDecodeError):
+                        # If JSON parsing fails, store as raw text
+                        error_response = {"raw_response": error_text, "note": "Response is not valid JSON"}
+                else:
+                    # Empty response
+                    error_response = {"note": "Response body is empty"}
+                
+                # Get response headers
+                response_headers = dict(e.response.headers)
+            else:
+                response_headers = None
+            
+            return {
+                "success": False,
+                "error": str(e),
+                "status_code": e.response.status_code if hasattr(e, 'response') and e.response else None,
+                "error_data": error_response,
+                "error_text": error_text,
+                "response_headers": response_headers,
+                "url": url
+            }
+        except Exception as e:
+            return {"success": False, "error": str(e)}
+
     def delete_product(self, manage_number: str) -> Dict[str, Any]:
         """
         Delete a product from Rakuten
@@ -496,6 +581,9 @@ def register_product_from_product_management(item_number: str) -> Dict[str, Any]
     Register a product to Rakuten using data from product_management table.
     Also maps the product to Rakuten category IDs if r_cat_id is set.
     
+    For blocked products (block = true), only updates price information using PATCH endpoint.
+    For non-blocked products, uses PUT endpoint to update all product information.
+    
     Args:
         item_number: Product item_number from product_management table (used as manage_number)
         
@@ -512,11 +600,97 @@ def register_product_from_product_management(item_number: str) -> Dict[str, Any]
             "error": f"Product with item_number '{item_number}' not found in product_management table"
         }
     
-    # Convert to Rakuten API format
-    rakuten_json = convert_product_management_to_rakuten_json(product_data)
+    # Check if product is blocked
+    block = product_data.get("block")
+    if isinstance(block, str):
+        is_blocked = block.lower() == "t" or block.lower() == "true"
+    elif isinstance(block, bool):
+        is_blocked = block
+    else:
+        is_blocked = False
     
     # Create API client (will load credentials from config if not provided)
     api = RakutenProductAPI()
+    
+    # If blocked, always use PATCH endpoint to update price only
+    if is_blocked:
+        logger.info(f"⚠️  Product {item_number} is blocked - using PATCH to update price only")
+        
+        # Extract variants with only standardPrice
+        variants = product_data.get("variants")
+        if not variants:
+            return {
+                "success": False,
+                "error": f"No variants found for blocked product '{item_number}'"
+            }
+        
+        # Parse variants if it's a string
+        if isinstance(variants, str):
+            try:
+                variants = json.loads(variants)
+            except (ValueError, json.JSONDecodeError):
+                return {
+                    "success": False,
+                    "error": f"Invalid variants JSON format for product '{item_number}'"
+                }
+        
+        # Filter variants to only include standardPrice
+        price_only_variants = {}
+        if isinstance(variants, dict):
+            for sku_id, variant_data in variants.items():
+                if isinstance(variant_data, dict) and "standardPrice" in variant_data:
+                    standard_price = variant_data["standardPrice"]
+                    # Ensure standardPrice is an integer (Rakuten API requires integer)
+                    try:
+                        if isinstance(standard_price, float):
+                            price_int = int(standard_price)
+                        elif isinstance(standard_price, str):
+                            cleaned_price = standard_price.split('.')[0]
+                            price_int = int(cleaned_price) if cleaned_price else 0
+                        elif isinstance(standard_price, int):
+                            price_int = standard_price
+                        else:
+                            price_int = int(float(standard_price))
+                        
+                        # Only include variants with valid price
+                        if price_int >= 0:
+                            # Include selectorValues for variant identification if available
+                            variant_update = {"standardPrice": str(price_int)}
+                            if "selectorValues" in variant_data:
+                                variant_update["selectorValues"] = variant_data["selectorValues"]
+                            
+                            price_only_variants[sku_id] = variant_update
+                    except (ValueError, TypeError) as e:
+                        logger.warning(f"Failed to convert standardPrice to integer for variant {sku_id}: {standard_price} - {e}")
+                        continue
+        
+        if not price_only_variants:
+            return {
+                "success": False,
+                "error": f"No valid price data found for blocked product '{item_number}'"
+            }
+        
+        # Include existing genreId if available (Rakuten may require it even for PATCH)
+        # We include it without changing it, just to satisfy validation
+        genre_id = product_data.get("genre_id")
+        if genre_id:
+            logger.info(f"📤 Sending PATCH request to update price for blocked product {item_number} with {len(price_only_variants)} variant(s) (including existing genreId)")
+        else:
+            logger.info(f"📤 Sending PATCH request to update price for blocked product {item_number} with {len(price_only_variants)} variant(s)")
+        
+        result = api.update_product_price(item_number, price_only_variants, genre_id=str(genre_id) if genre_id else None)
+        
+        # For blocked products, skip category mapping (only updating price)
+        if result.get("success"):
+            logger.info(f"✅ Price updated successfully for blocked product {item_number}")
+        else:
+            logger.error(f"❌ Failed to update price for blocked product {item_number}: {result.get('error')}")
+        
+        return result
+    
+    # For non-blocked products, use PUT endpoint (full update)
+    # Convert to Rakuten API format
+    rakuten_json = convert_product_management_to_rakuten_json(product_data)
     
     # Register product to Rakuten
     result = api.register_product(item_number, rakuten_json)
@@ -1189,6 +1363,67 @@ def convert_product_management_to_rakuten_json(product_data: Dict[str, Any]) -> 
     Returns:
         Dictionary in Rakuten API JSON format
     """
+    # Check if product is blocked - if so, only send price and inventory information
+    block = product_data.get("block")
+    if isinstance(block, str):
+        is_blocked = block.lower() == "t" or block.lower() == "true"
+    elif isinstance(block, bool):
+        is_blocked = block
+    else:
+        is_blocked = False
+    
+    # If blocked, return minimal JSON with only itemNumber and variants with price only
+    if is_blocked:
+        rakuten_json = {
+            "itemNumber": product_data.get("item_number", ""),
+        }
+        
+        # Only include variants with standardPrice (price information)
+        if product_data.get("variants"):
+            variants = product_data["variants"]
+            # Parse if it's a string
+            if isinstance(variants, str):
+                try:
+                    variants = json.loads(variants)
+                except (ValueError, json.JSONDecodeError):
+                    variants = {}
+            
+            # Filter variants to only include price information
+            price_only_variants = {}
+            if isinstance(variants, dict):
+                for sku_id, variant_data in variants.items():
+                    if isinstance(variant_data, dict):
+                        # Only keep standardPrice and selectorValues (for variant identification)
+                        price_only_variant = {}
+                        if "selectorValues" in variant_data:
+                            price_only_variant["selectorValues"] = variant_data["selectorValues"]
+                        if "standardPrice" in variant_data:
+                            standard_price = variant_data["standardPrice"]
+                            # Ensure standardPrice is an integer (Rakuten API requires integer)
+                            try:
+                                if isinstance(standard_price, float):
+                                    price_only_variant["standardPrice"] = int(standard_price)
+                                elif isinstance(standard_price, str):
+                                    cleaned_price = standard_price.split('.')[0]
+                                    price_only_variant["standardPrice"] = int(cleaned_price) if cleaned_price else 0
+                                elif isinstance(standard_price, int):
+                                    price_only_variant["standardPrice"] = standard_price
+                                else:
+                                    price_only_variant["standardPrice"] = int(float(standard_price))
+                            except (ValueError, TypeError):
+                                logger.warning(f"Failed to convert standardPrice to integer for variant {sku_id}: {standard_price}")
+                                continue
+                        
+                        # Only add variant if it has both selectorValues and standardPrice
+                        if "selectorValues" in price_only_variant and "standardPrice" in price_only_variant:
+                            price_only_variants[sku_id] = price_only_variant
+            
+            if price_only_variants:
+                rakuten_json["variants"] = price_only_variants
+        
+        logger.info(f"⚠️  Product {product_data.get('item_number')} is blocked - only sending price information")
+        return rakuten_json
+    
     # Convert hide_item from boolean/string to boolean
     hide_item = product_data.get("hide_item")
     if isinstance(hide_item, str):

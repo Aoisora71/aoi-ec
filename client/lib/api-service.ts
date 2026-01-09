@@ -631,6 +631,12 @@ class ApiService {
     })
   }
 
+  async updateProductBlock(itemNumber: string, block: boolean): Promise<{ success: boolean; message?: string; error?: string }> {
+    return this.request<{ success: boolean; message?: string; error?: string }>(`/api/product-management/${itemNumber}/block?block=${block}`, {
+      method: 'PATCH',
+    })
+  }
+
   async updateProductsHideItemBatch(itemNumbers: string[], hideItem: boolean): Promise<{ success: boolean; message?: string; error?: string; updated_count?: number }> {
     return this.request<{ success: boolean; message?: string; error?: string; updated_count?: number }>('/api/product-management/batch-hide-item', {
       method: 'PATCH',
@@ -940,7 +946,8 @@ class ApiService {
     limit: number = 50, 
     offset: number = 0, 
     sortBy?: string, 
-    sortOrder?: string
+    sortOrder?: string,
+    search?: string
   ): Promise<ProductResponse> {
     const params = new URLSearchParams({ 
       limit: String(limit), 
@@ -951,6 +958,9 @@ class ApiService {
     }
     if (sortOrder) {
       params.append('sort_order', sortOrder)
+    }
+    if (search && search.trim()) {
+      params.append('search', search.trim())
     }
     return this.request<ProductResponse>(`/api/product-management?${params.toString()}`, {}, { throwOnError: false })
   }
