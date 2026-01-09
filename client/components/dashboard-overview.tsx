@@ -64,8 +64,18 @@ export function DashboardOverview() {
   const [registeredCount, setRegisteredCount] = useState<number>(0)
   const [productOriginCount, setProductOriginCount] = useState<number>(0)
   const [failedCount, setFailedCount] = useState<number>(0)
-  const [recentProducts, setRecentProducts] = useState<Array<{item_number: string, title: string, rakuten_registered_at: string}>>([])
+  const [recentProducts, setRecentProducts] = useState<Array<{item_number: string, title: string, rakuten_registered_at: string, images?: Array<{ type: string; location: string }>}>>([])
   const [categoryData, setCategoryData] = useState<Array<{name: string, value: number, color: string}>>([])
+
+  // Helper function to get image URL
+  const getImageUrl = (location: string): string => {
+    if (!location) return "/placeholder.svg"
+    // Construct full URL from base URL + location
+    const baseUrl = "https://licel-product-image.s3.ap-southeast-2.amazonaws.com/products"
+    // Ensure location starts with /
+    const cleanLocation = location.startsWith("/") ? location : `/${location}`
+    return `${baseUrl}${cleanLocation}`
+  }
 
   useEffect(() => {
     (async () => {
@@ -288,17 +298,13 @@ export function DashboardOverview() {
       {/* Recent Products & System Status */}
       <div className="grid gap-4 lg:grid-cols-2">
         <Card className="p-6 border-border bg-card">
-          <div className="flex items-center justify-between mb-6">
+          <div className="mb-6">
             <div>
               <h3 className="text-lg font-semibold text-foreground">最近登録された商品</h3>
               <p className="text-sm text-muted-foreground">自動登録された商品一覧</p>
             </div>
-            <Button variant="outline" size="sm" className="gap-2 bg-transparent">
-              すべて表示
-              <ArrowUpRight className="h-4 w-4" />
-            </Button>
           </div>
-          <div className="space-y-3">
+          <div className="max-h-[600px] overflow-y-auto space-y-3 pr-2 custom-scrollbar">
             {recentProducts.length === 0 ? (
               <div className="text-center text-muted-foreground py-8">
                 最近登録された商品がありません
@@ -313,26 +319,58 @@ export function DashboardOverview() {
                       const day = String(date.getDate()).padStart(2, '0')
                       const hours = String(date.getHours()).padStart(2, '0')
                       const minutes = String(date.getMinutes()).padStart(2, '0')
-                      return `${year}-${month}-${day} ${hours}:${minutes}`
+                      const seconds = String(date.getSeconds()).padStart(2, '0')
+                      return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
                     })()
                   : ''
+                
+                // Get first image location and construct full URL
+                const firstImageLocation = Array.isArray(product.images) && product.images.length > 0 && product.images[0]?.location 
+                  ? product.images[0].location 
+                  : null
+                const productImage = firstImageLocation 
+                  ? getImageUrl(firstImageLocation)
+                  : "/placeholder.svg"
+                
                 return (
                   <div
                     key={product.item_number}
-                    className="flex items-center justify-between p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
+                    className="flex items-center gap-3 p-3 rounded-lg bg-muted/50 hover:bg-muted transition-colors"
                   >
-                    <div className="flex-1">
-                      <p className="text-sm font-medium text-foreground">{product.title || product.item_number}</p>
-                      <div className="flex items-center gap-2 mt-1">
+                    {/* Product Image */}
+                    <div className="h-12 w-12 rounded-lg bg-muted overflow-hidden flex-shrink-0 border border-border">
+                      <img 
+                        src={productImage} 
+                        alt={product.title || product.item_number}
+                        className="h-full w-full object-cover"
+                        loading="lazy"
+                        onError={(e) => {
+                          const target = e.currentTarget as HTMLImageElement
+                          if (target.src !== "/placeholder.svg") {
+                            target.src = "/placeholder.svg"
+                          }
+                        }}
+                      />
+                    </div>
+                    
+                    {/* Product Info */}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-foreground truncate">{product.title || product.item_number}</p>
+                      <div className="flex items-center gap-2 mt-1 flex-wrap">
                         <Badge variant="outline" className="text-xs">
                           {product.item_number}
                         </Badge>
                         {registeredDate && (
-                          <span className="text-xs text-muted-foreground">{registeredDate}</span>
+                          <span className="text-xs text-muted-foreground flex items-center gap-1">
+                            <Clock className="h-3 w-3" />
+                            {registeredDate}
+                          </span>
                         )}
                       </div>
                     </div>
-                    <div>
+                    
+                    {/* Status Badge */}
+                    <div className="flex-shrink-0">
                       <Badge className="bg-success/10 text-success border-success/20">
                         <CheckCircle2 className="h-3 w-3 mr-1" />
                         登録済み
