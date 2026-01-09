@@ -39,6 +39,8 @@ import {
   EyeOff,
   ExternalLink,
   Save,
+  Lock,
+  Pencil,
 } from "lucide-react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { formatNumberJa } from "@/lib/locale"
@@ -118,6 +120,7 @@ interface Product {
   tags?: string[]
   images?: Array<{ type: string; location: string }>
   hide_item?: boolean
+  block?: boolean
   variant_selectors?: ProductVariantSelector[]
   variants?: Record<string, ProductVariant>
   created_at?: string
@@ -243,6 +246,7 @@ export function ProductManagement() {
   const [isUpdatingChanges, setIsUpdatingChanges] = useState(false)
   const [toggling, setToggling] = useState<Record<string, boolean>>({})
   const [togglingAll, setTogglingAll] = useState(false)
+  const [blocking, setBlocking] = useState<Record<string, boolean>>({})
   const [settingsModalOpen, setSettingsModalOpen] = useState(false)
   const [selectedProductForSettings, setSelectedProductForSettings] = useState<Product | null>(null)
   const [csvUploadModalOpen, setCsvUploadModalOpen] = useState(false)
@@ -365,21 +369,32 @@ export function ProductManagement() {
     return () => clearInterval(interval)
   }, [loadProductStats])
 
-  // Reset offset when sort changes
+  // Reset offset when sort or search changes
   useEffect(() => {
     setCurrentOffset(0)
     setHasMoreProducts(true)
-  }, [sortBy, sortOrder])
+  }, [sortBy, sortOrder, debouncedSearchQuery])
 
+  // Load products from backend (with search if query exists)
   useEffect(() => {
     const load = async () => {
       setIsLoading(true)
       try {
-        const resp = await apiService.getProductManagement(PAGE_SIZE, 0, sortBy, sortOrder)
+        // If search query exists, search all products in database
+        // Otherwise, load normally with pagination
+        const resp = await apiService.getProductManagement(
+          debouncedSearchQuery ? 10000 : PAGE_SIZE, // Large limit for search, normal pagination otherwise
+          0, 
+          sortBy, 
+          sortOrder,
+          debouncedSearchQuery || undefined
+        )
         if (resp.success && Array.isArray(resp.data)) {
           setItems(resp.data)
           setCurrentOffset(resp.data.length)
-          setHasMoreProducts(resp.data.length === PAGE_SIZE)
+          // For search, disable "load more" since we get all results
+          // For normal load, enable if we got a full page
+          setHasMoreProducts(debouncedSearchQuery ? false : resp.data.length === PAGE_SIZE)
         } else {
           setItems([])
           setCurrentOffset(0)
@@ -390,7 +405,7 @@ export function ProductManagement() {
       }
     }
     load()
-  }, [sortBy, sortOrder])
+  }, [sortBy, sortOrder, debouncedSearchQuery])
 
   useEffect(() => {
     const loadPrimaryCategories = async () => {
@@ -505,6 +520,45 @@ export function ProductManagement() {
       })
     } finally {
       setToggling(prev => ({ ...prev, [productId]: false }))
+    }
+  }
+
+  const handleToggleBlock = async (product: Product) => {
+    // Use item_number as the identifier (not id)
+    const productId = product.item_number || product.id
+    if (!productId) return
+    
+    setBlocking(prev => ({ ...prev, [productId]: true }))
+    try {
+      // Toggle: if currently blocked (true), unblock (false), and vice versa
+      const newBlock = product.block === true ? false : true
+      
+      // Call API to update database
+      const response = await apiService.updateProductBlock(productId, newBlock)
+      
+      if (response.success) {
+        // Update local state - match by item_number first, then id
+        setItems(prev => prev.map(item => {
+          const itemId = item.item_number || item.id
+          return itemId === productId 
+            ? { ...item, block: newBlock }
+            : item
+        }))
+        toast({
+          title: "成功",
+          description: `商品を${newBlock ? 'ブロック' : 'アンブロック'}しました`,
+        })
+      } else {
+        throw new Error(response.error || '更新に失敗しました')
+      }
+    } catch (error) {
+      toast({
+        title: "エラー",
+        description: "ブロック状態の更新に失敗しました",
+        variant: "destructive",
+      })
+    } finally {
+      setBlocking(prev => ({ ...prev, [productId]: false }))
     }
   }
   
@@ -2322,12 +2376,13 @@ export function ProductManagement() {
       }
     }
     // IMPORTANT: Do NOT filter by rakuten_registration_status - show all products (unregistered, failed, registered)
-      // Search filter: Check if product matches search query (using debounced value)
-      const searchLower = debouncedSearchQuery.toLowerCase()
-    return (
-        (product.name || product.title || '').toLowerCase().includes(searchLower) ||
-        (product.item_number || '').toLowerCase().includes(searchLower)
-      )
+    // If search query exists, backend already filtered the results, so skip client-side search filtering
+    if (debouncedSearchQuery && debouncedSearchQuery.trim()) {
+      // Backend already filtered by search, so just return true for category-filtered products
+      return true
+    }
+    // No search query, return all products (category filter already applied above)
+    return true
     })
   }, [dataSource, selectedCategory, primaryCategories, debouncedSearchQuery])
 
@@ -3267,11 +3322,13 @@ export function ProductManagement() {
                       )}
                     </div>
                 </th>
+                  <th className="text-center px-2 text-xs font-medium text-muted-foreground w-20">ブロック</th>
                   <th className="text-center px-2 text-xs font-medium text-muted-foreground w-24">登録状態</th>
                   <th className="text-center px-2 text-xs font-medium text-muted-foreground w-20">登録</th>
                   <th className="text-center px-2 text-xs font-medium text-muted-foreground w-24">在庫登録</th>
                   <th className="text-center px-2 text-xs font-medium text-muted-foreground w-32">削除</th>
                   <th className="text-center px-2 text-xs font-medium text-muted-foreground w-28">楽天で表示</th>
+                  <th className="text-center px-2 text-xs font-medium text-muted-foreground w-20">編集</th>
                   <th className="text-center px-2 text-xs font-medium text-muted-foreground w-24">詳細設定</th>
                   <th className="text-center px-2 text-xs font-medium text-muted-foreground w-24">イメージ設定</th>
                   <th className="text-center px-2 text-xs font-medium text-muted-foreground w-20">SKU設定</th>
@@ -3293,10 +3350,12 @@ export function ProductManagement() {
                     ? getImageUrl(firstImageLocation)
                     : "/placeholder.svg"
                   const isHidden = product.hide_item === true
+                  const isBlocked = product.block === true
                   const registrationStatus = getRegistrationStatus(product)
                   const isRegistering = registering[productId] || false
                   const isRegisteringInventory = registeringInventory[productId] || false
                   const isToggling = toggling[productId] || false
+                  const isBlocking = blocking[productId] || false
                   const imageRegistrationStatus = product.image_registration_status === true
                   const inventoryRegistrationStatus = product.inventory_registration_status === true
                   
@@ -3380,6 +3439,32 @@ export function ProductManagement() {
                               ) : (
                                 <EyeOff className="h-4 w-4" />
                               )}
+                            </Toggle>
+                          )}
+                        </div>
+                      </td>
+                      
+                      {/* Block Button */}
+                      <td className="px-2 align-middle text-center">
+                        <div className="flex items-center justify-center">
+                          {isBlocking ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-muted-foreground" />
+                          ) : (
+                            <Toggle
+                              pressed={isBlocked}
+                              onPressedChange={() => handleToggleBlock(product)}
+                              disabled={isBlocking}
+                              size="sm"
+                              variant="outline"
+                              className={cn(
+                                "h-6 w-6 p-0 min-w-6 rounded-md transition-all",
+                                isBlocked
+                                  ? "bg-red-500 text-white hover:bg-red-600 data-[state=on]:bg-red-500 data-[state=on]:text-white border-red-600" 
+                                  : "bg-gray-200 text-gray-500 hover:bg-gray-300 border-gray-300"
+                              )}
+                              aria-label={isBlocked ? "ブロック中" : "ブロック解除"}
+                            >
+                              <Lock className="h-4 w-4" />
                             </Toggle>
                           )}
                         </div>
@@ -3487,7 +3572,7 @@ export function ProductManagement() {
                           <Button
                             size="sm"
                             variant="outline"
-                            className="h-6 px-2.5 text-[11px] gap-1.5 leading-tight font-medium border border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-700"
+                            className="h-6 w-6 p-0 min-w-6 rounded-md transition-all border border-green-600 text-green-600 hover:bg-green-50 hover:text-green-700 hover:border-green-700"
                             onClick={() => {
                               const itemNumber = product.item_number
                               if (itemNumber) {
@@ -3495,9 +3580,30 @@ export function ProductManagement() {
                               }
                             }}
                             disabled={!product.item_number}
+                            aria-label={`${productName}を楽天で表示`}
                           >
-                            <ExternalLink className="h-3 w-3" />
-                            <span>楽天で表示</span>
+                            <ExternalLink className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </td>
+                      
+                      {/* Edit on Rakuten Button */}
+                      <td className="px-2 align-middle text-center">
+                        <div className="flex items-center justify-center">
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="h-6 w-6 p-0 min-w-6 rounded-md transition-all border border-blue-600 text-blue-600 hover:bg-blue-50 hover:text-blue-700 hover:border-blue-700"
+                            onClick={() => {
+                              const itemNumber = product.item_number
+                              if (itemNumber) {
+                                window.open(`https://item.rms.rakuten.co.jp/rms-sku/shops/437067/item/edit/${itemNumber}`, '_blank', 'noopener,noreferrer')
+                              }
+                            }}
+                            disabled={!product.item_number}
+                            aria-label={`${productName}を楽天で編集`}
+                          >
+                            <Pencil className="h-4 w-4" />
                           </Button>
                         </div>
                       </td>

@@ -1069,6 +1069,7 @@ create table if not exists product_management (
 
     -- Visibility & inventory
     hide_item boolean,
+    block boolean default false,  -- Block changes to product
     unlimited_inventory_flag boolean,
 
     -- Features & payment
@@ -1459,6 +1460,50 @@ def update_product_hide_item(
                 return True
     except Exception as e:
         logger.error(f"❌ Failed to update hide_item for product {item_number}: {e}")
+        raise
+
+
+def update_product_block(
+    item_number: str,
+    block: bool,
+    *,
+    dsn: Optional[str] = None
+) -> bool:
+    """
+    Update the block field for a product in the product_management table.
+    
+    Args:
+        item_number: The item_number (product ID) to update
+        block: The new block value (True = blocked, False = unblocked)
+        dsn: Optional database connection string
+        
+    Returns:
+        True if update was successful, False otherwise
+    """
+    _ensure_import()
+    dsn_final = dsn or _get_dsn()
+    if not dsn_final:
+        raise RuntimeError("PostgreSQL DSN is not configured. Set DATABASE_URL or PG* env vars.")
+    
+    try:
+        with get_db_connection_context(dsn=dsn_final) as conn:
+            with conn.cursor() as cur:
+                cur.execute(
+                    """
+                    UPDATE product_management
+                    SET block = %s
+                    WHERE item_number = %s
+                    """,
+                    (block, item_number)
+                )
+                if cur.rowcount == 0:
+                    logger.warning(f"⚠️  No product found with item_number: {item_number}")
+                    return False
+                conn.commit()
+                logger.info(f"✅ Updated block for product {item_number} to {block}")
+                return True
+    except Exception as e:
+        logger.error(f"❌ Failed to update block for product {item_number}: {e}")
         raise
 
 
@@ -3878,6 +3923,18 @@ def fix_product_management_schema(*, dsn: Optional[str] = None) -> None:
                     END IF;
                 END $$;
             """)
+            # Add block column if it doesn't exist
+            cur.execute("""
+                DO $$ 
+                BEGIN 
+                    IF NOT EXISTS (
+                        SELECT 1 FROM information_schema.columns 
+                        WHERE table_name='product_management' AND column_name='block'
+                    ) THEN
+                        ALTER TABLE product_management ADD COLUMN block boolean default false;
+                    END IF;
+                END $$;
+            """)
             # Ensure useful indexes
             cur.execute("create unique index if not exists uniq_product_management_item_number on product_management(item_number);")
         conn.commit()
@@ -5905,7 +5962,7 @@ def upsert_product_management_from_origin_ids(
 
 
 def get_product_management(
-    *, limit: int = 50, offset: int = 0, sort_by: Optional[str] = None, sort_order: Optional[str] = None, dsn: Optional[str] = None
+    *, limit: int = 50, offset: int = 0, sort_by: Optional[str] = None, sort_order: Optional[str] = None, search: Optional[str] = None, dsn: Optional[str] = None
 ) -> list[dict]:
     """
     Read rows from product_management table only.
@@ -5916,6 +5973,7 @@ def get_product_management(
         offset: Number of products to skip
         sort_by: Field to sort by ('created_at' or 'rakuten_registered_at')
         sort_order: Sort order ('asc' or 'desc')
+        search: Optional search query to filter by title or item_number
         dsn: Optional database connection string
     """
     _ensure_import()
@@ -5936,23 +5994,31 @@ def get_product_management(
     order_by_field = sort_by if sort_by else 'created_at'
     order_by_direction = sort_order.upper() if sort_order else 'DESC'
     
+    # Build WHERE clause for search
+    where_clause = ""
+    search_params = []
+    if search and search.strip():
+        where_clause = "WHERE (LOWER(title) LIKE %s OR LOWER(item_number) LIKE %s)"
+        search_pattern = f"%{search.strip().lower()}%"
+        search_params = [search_pattern, search_pattern]
+    
     with get_db_connection_context(dsn=dsn_final) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             # Only select from product_management table (products registered from Product Research page)
             # IMPORTANT: Do NOT filter by rakuten_registration_status - return all products regardless of status
             # This allows category filtering to show all products (unregistered, failed, registered)
-            cur.execute(
-                f"""
+            query = f"""
                 SELECT id, item_number, title, tagline, product_description, sales_description,
-                       genre_id, tags, images, hide_item, variant_selectors, variants, 
+                       genre_id, tags, images, hide_item, block, variant_selectors, variants, 
                        created_at, rakuten_registered_at, rakuten_registration_status, image_registration_status, 
                        inventory_registration_status, src_url, main_category, middle_category
                 FROM product_management
+                {where_clause}
                 ORDER BY {order_by_field} {order_by_direction} NULLS LAST
                 LIMIT %s OFFSET %s
-                """,
-                (limit, offset),
-            )
+            """
+            params = search_params + [limit, offset]
+            cur.execute(query, params)
             rows = cur.fetchall()
             # Parse json fields
             for r in rows:
@@ -5993,7 +6059,7 @@ def get_product_management_by_item_number(
             cur.execute(
                 """
                 SELECT id, item_number, title, tagline, item_type, product_description, 
-                       sales_description, genre_id, tags, hide_item, unlimited_inventory_flag,
+                       sales_description, genre_id, tags, hide_item, block, unlimited_inventory_flag,
                        images, features, payment, layout, variant_selectors, variants, inventory,
                        rakuten_registration_status, image_registration_status, inventory_registration_status,
                        src_url, main_category, middle_category, r_cat_id
@@ -6999,7 +7065,7 @@ def get_recently_registered_products(limit: int = 5, *, dsn: Optional[str] = Non
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
             cur.execute(
                 """
-                SELECT item_number, title, rakuten_registered_at
+                SELECT item_number, title, rakuten_registered_at, images
                 FROM product_management
                 WHERE rakuten_registered_at IS NOT NULL
                 ORDER BY rakuten_registered_at DESC
@@ -7008,11 +7074,29 @@ def get_recently_registered_products(limit: int = 5, *, dsn: Optional[str] = Non
                 (limit,),
             )
             rows = cur.fetchall()
-            return [dict(r) for r in rows]
+            # Parse jsonb fields
+            result = []
+            for r in rows:
+                product = dict(r)
+                # Parse images if it's a string
+                images = product.get("images")
+                if isinstance(images, str):
+                    try:
+                        product["images"] = json.loads(images)
+                    except (ValueError, json.JSONDecodeError):
+                        product["images"] = []
+                elif images is None:
+                    product["images"] = []
+                result.append(product)
+            return result
 
 
 def get_category_registration_counts(*, dsn: Optional[str] = None) -> list[dict]:
-    """Get registration counts by main category from product_management where rakuten_registration_status = 'true'."""
+    """
+    Get registration counts by main_category from product_management.
+    Only counts products where rakuten_registration_status is not NULL, not empty, and not 'false'.
+    Maps main_category values to category_name from primary_category_management table.
+    """
     _ensure_import()
     dsn_final = dsn or _get_dsn()
     if not dsn_final:
@@ -7020,27 +7104,42 @@ def get_category_registration_counts(*, dsn: Optional[str] = None) -> list[dict]
 
     with get_db_connection_context(dsn=dsn_final) as conn:
         with conn.cursor(cursor_factory=psycopg2.extras.RealDictCursor) as cur:
-            # Get main_category from primary_category_management and count products
-            # Convert JSONB array to text array for comparison
+            # Count products by main_category and get category_name from primary_category_management
+            # where main_category is in the default_category_ids array
             cur.execute(
                 """
                 SELECT 
-                    pcm.id,
-                    pcm.category_name,
-                    COUNT(pm.item_number) as count
-                FROM primary_category_management pcm
-                LEFT JOIN product_management pm 
-                    ON pm.main_category = ANY(
-                        ARRAY(SELECT jsonb_array_elements_text(pcm.default_category_ids))
+                    COALESCE(pcm.category_name, pm.main_category) as category_name,
+                    COUNT(pm.item_number) as count,
+                    pm.main_category as main_category_id
+                FROM product_management pm
+                LEFT JOIN primary_category_management pcm 
+                    ON CAST(pm.main_category AS TEXT) = ANY(
+                        ARRAY(
+                            SELECT CAST(value AS TEXT)
+                            FROM jsonb_array_elements_text(pcm.default_category_ids) AS value
+                        )
                     )
-                    AND pm.rakuten_registration_status = 'true'
-                GROUP BY pcm.id, pcm.category_name
+                WHERE pm.main_category IS NOT NULL
+                  AND pm.main_category != ''
+                  AND pm.rakuten_registration_status IS NOT NULL
+                  AND pm.rakuten_registration_status != ''
+                  AND pm.rakuten_registration_status != 'false'
+                GROUP BY COALESCE(pcm.category_name, pm.main_category), pm.main_category
                 HAVING COUNT(pm.item_number) > 0
                 ORDER BY count DESC
                 """,
             )
             rows = cur.fetchall()
-            return [dict(r) for r in rows]
+            # Format result to match expected structure (with id field for compatibility)
+            result = []
+            for idx, r in enumerate(rows):
+                result.append({
+                    "id": idx + 1,
+                    "category_name": r.get("category_name", r.get("main_category_id", "")),
+                    "count": r.get("count", 0)
+                })
+            return result
 
 
 # ============================================================================
