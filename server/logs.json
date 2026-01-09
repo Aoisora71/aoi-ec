@@ -1,31 +1,31 @@
 [
   {
-    "id": "1767962946421_2719",
-    "timestamp": "2026-01-09T21:49:06.421383",
-    "level": "warning",
-    "message": "404 Not Found: GET /api/.env",
-    "details": "IP: 127.0.0.1, User-Agent: Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36, Referer: none",
-    "source": "api"
+    "id": "1767965733856_1071",
+    "timestamp": "2026-01-09T22:35:33.856011",
+    "level": "info",
+    "message": "Licel Store API server shutting down",
+    "details": "Server shutdown initiated",
+    "source": "shutdown"
   },
   {
-    "id": "1767962881148_9003",
-    "timestamp": "2026-01-09T21:48:01.148289",
+    "id": "1767965733852_8185",
+    "timestamp": "2026-01-09T22:35:33.852420",
     "level": "info",
     "message": "Automatic refresh disabled",
     "details": "Auto refresh is turned off in settings",
     "source": "auto-refresh"
   },
   {
-    "id": "1767962881147_1493",
-    "timestamp": "2026-01-09T21:48:01.147797",
+    "id": "1767965733852_1282",
+    "timestamp": "2026-01-09T22:35:33.852097",
     "level": "info",
     "message": "Licel Store API server started",
     "details": "Server initialization completed",
     "source": "startup"
   },
   {
-    "id": "1767962880617_9510",
-    "timestamp": "2026-01-09T21:48:00.617562",
+    "id": "1767965733571_8239",
+    "timestamp": "2026-01-09T22:35:33.571068",
     "level": "warning",
     "message": "Connection pool initialization failed",
     "details": "Server will continue but may have reduced performance. Ensure PostgreSQL is running.",
